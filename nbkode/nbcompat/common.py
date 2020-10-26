@@ -10,7 +10,7 @@
 
 import numpy as np
 
-from . import numba
+import numba
 
 
 @numba.njit()

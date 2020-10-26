@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 from scipy.optimize import zeros
 
-from . import numba
+import numba
 from .common import isclose
 
 
