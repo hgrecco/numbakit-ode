@@ -195,6 +195,19 @@ class Solver(ABC):
         """
         self._step(t_bound, *self._steps_args(), *self._steps_extra_args())
 
+    def nsteps(self, steps: int):
+        """Advance simulation one time step.
+
+        Modifies in-place self.t, self.y, self.f
+        """
+        self._nsteps(steps, self._step, *self._steps_args(), *self._steps_extra_args())
+
+    @staticmethod
+    @numba.njit
+    def _nsteps(steps, step, rhs, t, y, f, *extra_args):
+        for _ in range(steps):
+            step(np.inf, rhs, t, y, f, *extra_args)
+
     def interpolate(self, t):
         """Interpolate solution at t."""
         return self._interpolate(t, *self._steps_args(), *self._steps_extra_args())
