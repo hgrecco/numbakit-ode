@@ -95,6 +95,12 @@ time_f1_rk45_10k.param_names = ["solver", "jit_before"]
 time_f1_rk45_10k.setup = time_f1_instantiate1_1step
 
 
+def my_setup(solver_cls, jit_before):
+    time_f1_instantiate1_1step(solver_cls, jit_before)
+    if hasattr(sol, 'nsteps'):
+        sol.nsteps(1)
+
+
 def time_f1_rk23_10k_onecall(solver_cls, jit_before):
     if hasattr(sol, 'nsteps'):
         sol.nsteps(10_000)
@@ -105,7 +111,7 @@ def time_f1_rk23_10k_onecall(solver_cls, jit_before):
 
 time_f1_rk23_10k_onecall.params = (RK23s, [True, False])
 time_f1_rk23_10k_onecall.param_names = ["solver", "jit_before"]
-time_f1_rk23_10k_onecall.setup = time_f1_instantiate1_1step
+time_f1_rk23_10k_onecall.setup = my_setup
 
 
 def time_f1_rk45_10k_onecall(solver_cls, jit_before):
@@ -115,10 +121,6 @@ def time_f1_rk45_10k_onecall(solver_cls, jit_before):
         for n in range(10_000):
             sol.step()
 
-def my_setup(solver_cls, jit_before):
-    time_f1_instantiate1_1step(solver_cls, jit_before)
-    if hasattr(sol, 'nsteps'):
-        sol.nsteps(1)
 
 
 time_f1_rk45_10k_onecall.params = (RK45s, [True, False])
