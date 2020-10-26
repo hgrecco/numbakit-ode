@@ -1,0 +1,52 @@
+language: python
+
+branches:
+  # prevent bors temporary branches to be built
+  except:
+  - staging.tmp
+  - trying.tmp
+
+env:
+  - PKGS="python=3.7 flake8 black==19.10b0 isort"  # Have linters fail first and quickly
+  - PKGS="python=3.7 numpy scipy numba"
+  - PKGS="python=3.8 numpy scipy numba"
+  - PKGS="python=3.9 numpy scipy numba"
+
+  # TODO: pandas tests
+  # - PKGS="python=3.7 numpy pandas uncertainties pandas"
+
+before_install:
+  - sudo apt-get update
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  # But broke travis 2019-08
+  # - sudo rm -rf /dev/shm
+  # - sudo ln -s /run/shm /dev/shm
+  - export TEST_OPTS="-rfsxEX -s --cov=nbkode --cov-config=.coveragerc"
+
+install:
+  - conda create -n travis $PKGS pytest pytest-cov coveralls
+  - source activate travis
+  - if [[ $PKGS =~ flake8 ]]; then LINT=1; else LINT=0; fi
+  - if [[ $PKGS =~ sphinx ]]; then DOCS=1; else DOCS=0; fi
+  - conda list
+  - pip install .
+
+script:
+  - if [[ $LINT == 0 && $DOCS == 0 ]]; then python -bb -m pytest $TEST_OPTS; fi
+  - if [[ $LINT == 1 ]]; then black -t py36 --check . && isort -rc -c . && flake8; fi
+  - if [[ $DOCS == 1 ]]; then PYTHONPATH=$PWD sphinx-build -n -j auto -b html -d build/doctrees docs build/html; fi
+  - if [[ $DOCS == 1 ]]; then PYTHONPATH=$PWD sphinx-build -a -j auto -b doctest -d build/doctrees docs build/doctest; fi
+  - if [[ $LINT == 0 && $DOCS == 0 ]]; then coverage report -m; fi
+
+after_success:
+  - coveralls --verbose
