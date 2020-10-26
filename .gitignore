@@ -1,3 +1,6 @@
+# Hidden files/directories
+.*
+
 *~
 __pycache__
 *egg-info*
