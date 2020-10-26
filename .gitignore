@@ -1,0 +1,37 @@
+*~
+__pycache__
+*egg-info*
+*.pyc
+.DS_Store
+docs/_build/
+.idea
+.vscode
+build/
+dist/
+MANIFEST
+*pytest_cache*
+.eggs
+.mypy_cache
+pip-wheel-metadata
+
+# WebDAV file system cache files
+.DAV/
+
+# tags files (from ctags)
+tags
+
+test/
+.coverage*
+
+# notebook stuff
+*.ipynb_checkpoints*
+
+# test csv which should be user generated
+notebooks/pandas_test.csv
+
+# dask stuff
+dask-worker-space
+
+# airspeed velocity bechmark
+.asv/
+tmp/
