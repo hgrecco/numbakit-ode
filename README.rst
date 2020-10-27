@@ -45,8 +45,8 @@ It is extremely easy and natural to use:
 .. code-block:: python
 
     >>> import nbkode
-    >>> def func(x, k):
-    ...     return -k * x
+    >>> def func(t, y, k):
+    ...     return -k * y
     >>> t0 = 0.
     >>> y0 = 1.
     >>> solver = nbkode.Euler(func, t0, y0, args=(1, ))
@@ -130,6 +130,9 @@ automated testing.
 **Data driven development**: We take decisions based on data, and for this
 purpose we measure the performance of each part of the package, and the effect
 of each change we make.
+
+
+----
 
 numbakit-ode is maintained by a community. See AUTHORS_ for a complete list.
 
