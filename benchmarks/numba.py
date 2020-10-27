@@ -12,6 +12,8 @@ import os
 
 import numpy as np
 
+from .common import NumbaStepModes
+
 # Do not import this automatically as we want to be able to disable Numba
 # and this requires not importing nbkode soon.
 names = [
@@ -26,39 +28,107 @@ names = [
     "RungeKutta45",
 ]
 
+BOOLEANS = (True, False)
+NUMBA_MODES = tuple(NumbaStepModes.__members__.keys())
+
+
 y0 = np.atleast_1d(1.0)
+
+
+func = None
+
+
+def define_func(numba_enabled):
+    global func
+    if not numba_enabled:
+        os.environ["NBKODE_NONUMBA"] = "1"
+
+    # Leave the import inside to ensure proper NBKODE_NONUMBA
+    import nbkode
+    from nbkode.nbcompat import numba
+
+    @numba.njit()
+    def f(t, x, k):
+        return k * x
+
+    _ = f(0.0, y0, -0.01)
+    func = f
+
 
 sol = None
 
 
-def time_instantiate1_1step(solver_cls_name, numba_enabled):
+def define_sol(integrator):
     global sol
 
-    if not numba_enabled:
-        os.environ["NBKODE_NONUMBA"] = "1"
-
+    # Leave the import inside to ensure proper NBKODE_NONUMBA
     import nbkode
 
     solvers = {solver.__name__: solver for solver in nbkode.get_solvers()}
-    solver_cls = solvers[solver_cls_name]
+    solver_cls = solvers[integrator]
 
-    def f(t, x, k):
-        return k * x
+    sol = solver_cls(func, 0.0, y0, args=(-0.01,))
 
-    sol = solver_cls(f, 0.0, y0, args=(-0.01,))
 
+###############
+# Instantiate
+###############
+
+
+def setup_instantiate(integrator, numba_enabled):
+    define_func(numba_enabled)
+
+
+def time_instantiate(integrator, numba_enabled):
+    return define_sol(integrator)
+
+
+time_instantiate.setup = setup_instantiate
+time_instantiate.params = (names, BOOLEANS)
+time_instantiate.param_names = ("integrator", "numba_enabled")
+
+
+###############
+# First Step
+###############
+
+
+def setup_time_f1_first_step(integrator, numba_enabled):
+    define_func(numba_enabled)
+    define_sol(integrator)
+
+
+def time_f1_first_step(integrator, numba_enabled):
     sol.step()
 
 
-time_instantiate1_1step.params = (names, [True, False])
-time_instantiate1_1step.param_names = ["solver", "numba_enabled"]
+time_f1_first_step.setup = setup_time_f1_first_step
+time_f1_first_step.params = (names, BOOLEANS)
+time_f1_first_step.param_names = ("integrator", "numba_enabled")
 
 
-def time_1d_10k(solver_cls_name, numba_disabled):
-    for n in range(10_000):
-        sol.step()
+###############
+# Run 10k
+###############
 
 
-time_1d_10k.setup = time_instantiate1_1step
-time_1d_10k.params = (names, [True, False])
-time_1d_10k.param_names = ["solver", "numba_enabled"]
+def setup_time_f1_run10k(integrator, other):
+    numba_enabled = other != NumbaStepModes.NUMBA_DISABLED.name
+    define_func(numba_enabled)
+    define_sol(integrator)
+    sol.step()
+    if hasattr(sol, "nsteps"):
+        sol.nsteps(1)
+
+
+def time_f1_run10k(integrator, other):
+    if other == NumbaStepModes.INTERNAL_LOOP.name:
+        sol.nsteps(10_000)
+    else:
+        for n in range(10_000):
+            sol.step()
+
+
+time_f1_run10k.setup = setup_time_f1_run10k
+time_f1_run10k.params = (names, NUMBA_MODES)
+time_f1_run10k.param_names = ("integrator", "other")
