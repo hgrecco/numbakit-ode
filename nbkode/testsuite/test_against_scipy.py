@@ -18,6 +18,7 @@ from nbkode import runge_kutta
 equivalents = [
     (runge_kutta.RungeKutta23, integrate.RK23),
     (runge_kutta.RungeKutta45, integrate.RK45),
+    (runge_kutta.DOP853, integrate.DOP853),
 ]
 
 

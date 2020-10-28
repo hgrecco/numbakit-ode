@@ -17,10 +17,15 @@ from nbkode.nbcompat import numba
 from .common import NumbaStepModes
 
 by_name = {
-    "scipy": {"RungeKutta23": integrate.RK23, "RungeKutta45": integrate.RK45,},
+    "scipy": {
+        "RungeKutta23": integrate.RK23,
+        "RungeKutta45": integrate.RK45,
+        "DOP853": integrate.DOP853,
+    },
     "nbkode": {
         "RungeKutta23": runge_kutta.RungeKutta23,
         "RungeKutta45": runge_kutta.RungeKutta45,
+        "DOP853": runge_kutta.DOP853,
     },
 }
 

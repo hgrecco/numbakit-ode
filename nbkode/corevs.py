@@ -11,7 +11,6 @@
 """
 
 
-from functools import partial
 from typing import Callable, Tuple
 
 import numpy as np
@@ -30,7 +29,7 @@ MIN_FACTOR = 0.2  # Minimum allowed decrease in a step size.
 MAX_FACTOR = 10  # Maximum allowed increase in a step size.
 
 
-@numba.njit(cache=True)
+@numba.njit()
 def rk_step(rhs, t, y, f, h, A, B, C, K):
     """Perform a single Runge-Kutta step.
     This function computes a prediction of an explicit Runge-Kutta method and
@@ -89,9 +88,13 @@ def rk_step(rhs, t, y, f, h, A, B, C, K):
     return y_new, f_new
 
 
-@numba.njit(cache=True)
-def _step(t_bound, rhs, t, y, f, h, K, closure_args):
-    A, B, C, E, error_exponent, atol, rtol, max_step = closure_args
+@numba.njit()
+def _step(t_bound,
+          rhs, t, y, f,
+          h, K,
+          closure_args,
+          error_norm_func, error_norm_func_args):
+    A, B, C, error_exponent, atol, rtol, max_step = closure_args
 
     t_cur = t[-1]
     y_cur = y[-1]
@@ -112,11 +115,13 @@ def _step(t_bound, rhs, t, y, f, h, K, closure_args):
         # Estimate norm of scaled error
         scale = atol + np.maximum(np.abs(y_cur), np.abs(y_new)) * rtol
 
-        # _estimate_error
-        scaled_error = (K.T @ E) * _h / scale
+        # # _estimate_error
+        # scaled_error = (K.T @ E) * _h / scale
+        #
+        # # _estimate_error_norm
+        # error_norm = (np.sum(scaled_error ** 2) / scaled_error.size) ** 0.5
 
-        # _estimate_error_norm
-        error_norm = (np.sum(scaled_error ** 2) / scaled_error.size) ** 0.5
+        error_norm = error_norm_func(K, _h, scale, error_norm_func_args)
 
         if error_norm < 1:
             if error_norm == 0:
@@ -219,10 +224,20 @@ class VariableStepRungeKutta(Solver):
         self.K = np.empty((self.n_stages + 1, self.y.size), dtype=float)
 
     def _steps_extra_args(self):
-        return self.h, self.K, (
-            self.A, self.B, self.C, self.E, self.error_exponent, self.atol, self.rtol, self.max_step
+        return (self.h, self.K,
+            (self.A, self.B, self.C, self.error_exponent, self.atol, self.rtol, self.max_step),
+            self._estimate_error_norm, self._estimate_error_norm_args()
         )
 
     @staticmethod
     def _step(t_bound, rhs, t, y, f):
         raise RuntimeError("This should have been replaced during init.")
+
+    @staticmethod
+    @numba.njit()
+    def _estimate_error_norm(K, h, scale, E):
+        scaled_error = (K.T @ E) * h / scale
+        return (np.sum(scaled_error ** 2) / scaled_error.size) ** 0.5
+
+    def _estimate_error_norm_args(self):
+        return self.E
