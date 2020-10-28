@@ -42,11 +42,11 @@ class RungeKutta23(VariableStepRungeKutta):
     order = 3
     error_estimator_order = 2
     n_stages = 3
-    C = np.array([0, 1 / 2, 3 / 4], dtype=float)
-    A = np.array([[0, 0, 0], [1 / 2, 0, 0], [0, 3 / 4, 0]], dtype=float)
-    B = np.array([2 / 9, 1 / 3, 4 / 9], dtype=float)
-    E = np.array([5 / 72, -1 / 12, -1 / 9, 1 / 8], dtype=float)
-    P = np.array(
+    C = np.ascontiguousarray([0, 1 / 2, 3 / 4], dtype=float)
+    A = np.ascontiguousarray([[0, 0, 0], [1 / 2, 0, 0], [0, 3 / 4, 0]], dtype=float)
+    B = np.ascontiguousarray([2 / 9, 1 / 3, 4 / 9], dtype=float)
+    E = np.ascontiguousarray([5 / 72, -1 / 12, -1 / 9, 1 / 8], dtype=float)
+    P = np.ascontiguousarray(
         [[1, -4 / 3, 5 / 9], [0, 1, -2 / 3], [0, 4 / 3, -8 / 9], [0, -1, 1]],
         dtype=float,
     )
@@ -76,8 +76,8 @@ class RungeKutta45(VariableStepRungeKutta):
     order = 5
     error_estimator_order = 4
     n_stages = 6
-    C = np.array([0, 1 / 5, 3 / 10, 4 / 5, 8 / 9, 1], dtype=float)
-    A = np.array(
+    C = np.ascontiguousarray([0, 1 / 5, 3 / 10, 4 / 5, 8 / 9, 1], dtype=float)
+    A = np.ascontiguousarray(
         [
             [0, 0, 0, 0, 0],
             [1 / 5, 0, 0, 0, 0],
@@ -88,15 +88,15 @@ class RungeKutta45(VariableStepRungeKutta):
         ],
         dtype=float,
     )
-    B = np.array(
+    B = np.ascontiguousarray(
         [35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84], dtype=float
     )
-    E = np.array(
+    E = np.ascontiguousarray(
         [-71 / 57600, 0, 71 / 16695, -71 / 1920, 17253 / 339200, -22 / 525, 1 / 40],
         dtype=float,
     )
     # Corresponds to the optimum value of c_6 from [2]_.
-    P = np.array(
+    P = np.ascontiguousarray(
         [
             [
                 1,

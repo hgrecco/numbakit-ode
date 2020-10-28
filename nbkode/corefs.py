@@ -187,7 +187,7 @@ class _FixedStepBaseSolver(Solver):
     def __init_subclass__(cls, **kwargs):
         if hasattr(cls, "COEFS"):
             cls.LEN_HISTORY = max(len(cls.COEFS), 2)
-            cls.COEFS = np.asarray(cls.COEFS).flatten()
+            cls.COEFS = np.ascontiguousarray(cls.COEFS).flatten()
             cls.COEFS.shape = (1, len(cls.COEFS))
         super().__init_subclass__(**kwargs)
 

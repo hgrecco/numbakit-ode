@@ -86,7 +86,7 @@ class Solver(ABC):
 
     def __init__(self, rhs: Callable, t0: float, y0: np.ndarray, args: tuple = ()):
 
-        y0 = np.asarray(y0)
+        y0 = np.ascontiguousarray(y0)
 
         self.rhs = _rhs = rhs
 
