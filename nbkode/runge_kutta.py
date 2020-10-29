@@ -16,10 +16,10 @@ import numpy as np
 
 from .nbcompat import numba
 from . import dop853_coefficients
-from .corevs import VariableStepRungeKutta
+from . import corevs
 
 
-class RungeKutta23(VariableStepRungeKutta):
+class RungeKutta23(corevs.VariableStepRungeKutta):
     """Explicit Runge-Kutta method of order 3(2).
 
     This uses the Bogacki-Shampine pair of formulas [1]_. The error is controlled
@@ -51,8 +51,25 @@ class RungeKutta23(VariableStepRungeKutta):
         dtype=float,
     )
 
+    def __init__(
+        self,
+        rhs: Callable,
+        t0: float,
+        y0: np.ndarray,
+        args: tuple = (),
+        *,
+        max_step=np.inf,
+        rtol=1e-3,
+        atol=1e-6,
+    ):
+        super().__init__(rhs, t0, y0, args, max_step=max_step, rtol=rtol, atol=atol)
 
-class RungeKutta45(VariableStepRungeKutta):
+        self._step = corevs.step_builder_E(
+            self.A, self.B, self.C, self.E, self.error_exponent, atol, rtol, max_step
+        )
+
+
+class RungeKutta45(corevs.VariableStepRungeKutta):
     """Explicit Runge-Kutta method of order 5(4).
 
     This uses the Dormand-Prince pair of formulas [1]_. The error is controlled
@@ -134,8 +151,25 @@ class RungeKutta45(VariableStepRungeKutta):
         dtype=float,
     )
 
+    def __init__(
+        self,
+        rhs: Callable,
+        t0: float,
+        y0: np.ndarray,
+        args: tuple = (),
+        *,
+        max_step=np.inf,
+        rtol=1e-3,
+        atol=1e-6,
+    ):
+        super().__init__(rhs, t0, y0, args, max_step=max_step, rtol=rtol, atol=atol)
 
-class DOP853(VariableStepRungeKutta):
+        self._step = corevs.step_builder_E(
+            self.A, self.B, self.C, self.E, self.error_exponent, atol, rtol, max_step
+        )
+
+
+class DOP853(corevs.VariableStepRungeKutta):
     """Explicit Runge-Kutta method of order 8.
     This is a Python implementation of "DOP853" algorithm originally written
     in Fortran [1]_, [2]_. Note that this is not a literate translation, but
@@ -242,18 +276,6 @@ class DOP853(VariableStepRungeKutta):
                                     y0.size), dtype=y0.dtype)
         self.K = self.K_extended[:self.n_stages + 1]
 
-    @staticmethod
-    @numba.njit
-    def _estimate_error_norm(K, h, scale, een_extra_args):
-        E5, E3 = een_extra_args
-        err5 = np.dot(K.T, E5) / scale
-        err3 = np.dot(K.T, E3) / scale
-        err5_norm_2 = np.linalg.norm(err5)**2
-        err3_norm_2 = np.linalg.norm(err3)**2
-        if err5_norm_2 == 0 and err3_norm_2 == 0:
-            return 0.0
-        denom = err5_norm_2 + 0.01 * err3_norm_2
-        return np.abs(h) * err5_norm_2 / np.sqrt(denom * len(scale))
-
-    def _estimate_error_norm_args(self):
-        return self.E5, self.E3
+        self._step = corevs.step_builder_E5_E3(
+            self.A, self.B, self.C, self.E5, self.E3, self.error_exponent, atol, rtol, max_step
+        )

@@ -88,67 +88,123 @@ def rk_step(rhs, t, y, f, h, A, B, C, K):
     return y_new, f_new
 
 
-@numba.njit()
-def _step(t_bound,
-          rhs, t, y, f,
-          h, K,
-          closure_args,
-          error_norm_func, error_norm_func_args):
-    A, B, C, error_exponent, atol, rtol, max_step = closure_args
+def step_builder_E(A, B, C, E, error_exponent, atol, rtol, max_step):
+    @numba.njit
+    def _step(t_bound, rhs, t, y, f, h, K):
 
-    t_cur = t[-1]
-    y_cur = y[-1]
-    f_cur = f[-1]
+        t_cur = t[-1]
+        y_cur = y[-1]
+        f_cur = f[-1]
 
-    min_step = 10 * (np.nextafter(t_cur, np.inf) - t_cur)
-    _h = clip(h[0], min_step, max_step)
-    step_rejected = False
-    while True:
-        if _h < min_step:
-            raise RuntimeError("Required step is too small.")
+        min_step = 10 * (np.nextafter(t_cur, np.inf) - t_cur)
+        _h = clip(h[0], min_step, max_step)
+        step_rejected = False
+        while True:
+            if _h < min_step:
+                raise RuntimeError("Required step is too small.")
 
-        t_new = min(t_cur + _h, t_bound)
-        _h = t_new - t_cur
+            t_new = min(t_cur + _h, t_bound)
+            _h = t_new - t_cur
 
-        y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
+            y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
 
-        # Estimate norm of scaled error
-        scale = atol + np.maximum(np.abs(y_cur), np.abs(y_new)) * rtol
+            # Estimate norm of scaled error
+            scale = atol + np.maximum(np.abs(y_cur), np.abs(y_new)) * rtol
+            scaled_error = (K.T @ E) * _h / scale
+            error_norm = (np.sum(scaled_error ** 2) / scaled_error.size) ** 0.5
 
-        # # _estimate_error
-        # scaled_error = (K.T @ E) * _h / scale
-        #
-        # # _estimate_error_norm
-        # error_norm = (np.sum(scaled_error ** 2) / scaled_error.size) ** 0.5
+            if error_norm < 1:
+                if error_norm == 0:
+                    factor = MAX_FACTOR
+                else:
+                    factor = min(MAX_FACTOR, SAFETY * error_norm ** error_exponent)
 
-        error_norm = error_norm_func(K, _h, scale, error_norm_func_args)
+                if step_rejected:
+                    factor = min(1, factor)
 
-        if error_norm < 1:
-            if error_norm == 0:
-                factor = MAX_FACTOR
+                _h *= factor
+
+                break
             else:
-                factor = min(MAX_FACTOR, SAFETY * error_norm ** error_exponent)
+                _h *= max(MIN_FACTOR, SAFETY * error_norm ** error_exponent)
+                step_rejected = True
 
-            if step_rejected:
-                factor = min(1, factor)
+        f[:-1] = f[1:]
+        f[-1] = f_new
 
-            _h *= factor
+        t[:-1] = t[1:]
+        t[-1] = t_new
 
-            break
-        else:
-            _h *= max(MIN_FACTOR, SAFETY * error_norm ** error_exponent)
-            step_rejected = True
+        y[:-1] = y[1:]
+        y[-1] = y_new
 
-    f[:-1] = f[1:]
-    f[-1] = f_new
+        h[0] = _h
 
-    t[:-1] = t[1:]
-    t[-1] = t_new
+    return _step
 
-    y[:-1] = y[1:]
-    y[-1] = y_new
 
-    h[0] = _h
+def step_builder_E5_E3(A, B, C, E5, E3, error_exponent, atol, rtol, max_step):
+
+    @numba.njit
+    def _step(t_bound, rhs, t, y, f, h, K):
+
+        t_cur = t[-1]
+        y_cur = y[-1]
+        f_cur = f[-1]
+
+        min_step = 10 * (np.nextafter(t_cur, np.inf) - t_cur)
+        _h = clip(h[0], min_step, max_step)
+        step_rejected = False
+        while True:
+            if _h < min_step:
+                raise RuntimeError("Required step is too small.")
+
+            t_new = min(t_cur + _h, t_bound)
+            _h = t_new - t_cur
+
+            y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
+
+            # Estimate norm of scaled error
+            scale = atol + np.maximum(np.abs(y_cur), np.abs(y_new)) * rtol
+
+            err5 = np.dot(K.T, E5) / scale
+            err3 = np.dot(K.T, E3) / scale
+            err5_norm_2 = np.linalg.norm(err5) ** 2
+            err3_norm_2 = np.linalg.norm(err3) ** 2
+            if err5_norm_2 == 0 and err3_norm_2 == 0:
+                error_norm = 0.0
+            else:
+                denom = err5_norm_2 + 0.01 * err3_norm_2
+                error_norm = np.abs(_h) * err5_norm_2 / np.sqrt(denom * len(scale))
+
+            if error_norm < 1:
+                if error_norm == 0:
+                    factor = MAX_FACTOR
+                else:
+                    factor = min(MAX_FACTOR, SAFETY * error_norm ** error_exponent)
+
+                if step_rejected:
+                    factor = min(1, factor)
+
+                _h *= factor
+
+                break
+            else:
+                _h *= max(MIN_FACTOR, SAFETY * error_norm ** error_exponent)
+                step_rejected = True
+
+        f[:-1] = f[1:]
+        f[-1] = f_new
+
+        t[:-1] = t[1:]
+        t[-1] = t_new
+
+        y[:-1] = y[1:]
+        y[-1] = y_new
+
+        h[0] = _h
+
+    return _step
 
 
 class VariableStepRungeKutta(Solver):
@@ -202,10 +258,6 @@ class VariableStepRungeKutta(Solver):
         super().__init__(rhs, t0, y0, args)
 
         self.max_step = validate_max_step(max_step)
-        # self._step = step_builder(
-        #     self.A, self.B, self.C, self.E, self.error_exponent, atol, rtol, max_step
-        # )
-        self._step = _step
         self.rtol, self.atol = validate_tol(rtol, atol, self.y.size)
 
         h = select_initial_step(
@@ -224,20 +276,8 @@ class VariableStepRungeKutta(Solver):
         self.K = np.empty((self.n_stages + 1, self.y.size), dtype=float)
 
     def _steps_extra_args(self):
-        return (self.h, self.K,
-            (self.A, self.B, self.C, self.error_exponent, self.atol, self.rtol, self.max_step),
-            self._estimate_error_norm, self._estimate_error_norm_args()
-        )
+        return self.h, self.K
 
     @staticmethod
     def _step(t_bound, rhs, t, y, f):
         raise RuntimeError("This should have been replaced during init.")
-
-    @staticmethod
-    @numba.njit()
-    def _estimate_error_norm(K, h, scale, E):
-        scaled_error = (K.T @ E) * h / scale
-        return (np.sum(scaled_error ** 2) / scaled_error.size) ** 0.5
-
-    def _estimate_error_norm_args(self):
-        return self.E
