@@ -18,7 +18,7 @@ import numpy as np
 from nbkode.nbcompat import numba
 
 from .core import Solver
-from .nbcompat import j_newton
+from .nbcompat import j_newton, newton_hd
 
 
 def forward_step_builder(h, A):
@@ -107,9 +107,6 @@ def backward_step_builder(h, A, tol=1.48e-8, maxiter=50, rtol=0.0):
 
         return y_last + h * (A @ f).ravel() - y_new
 
-    # TODO: For size > 1, we need something like this.
-    # from scipy.optimize import root
-
     @numba.njit
     def _step(t_bound, rhs, ts, ys, fs):
         """Perform a single fixed step.
@@ -136,15 +133,24 @@ def backward_step_builder(h, A, tol=1.48e-8, maxiter=50, rtol=0.0):
 
         # TODO: For size > 1, we need something like this.
         # y_new = root(_to_solve, ys[-1], args=(rhs, t_new, ys[-1], fs)).x
-        y_new = j_newton(
-            _to_solve,
-            ys[-1],
-            args=(rhs, t_new, ys[-1], fs),
-            tol=tol,
-            rtol=rtol,
-            maxiter=maxiter,
-        )
-
+        if ys[-1].size == 1:
+            y_new = j_newton(
+                _to_solve,
+                ys[-1],
+                args=(rhs, t_new, ys[-1], fs),
+                tol=tol,
+                rtol=rtol,
+                maxiter=maxiter,
+            )
+        else:
+            y_new = newton_hd(
+                _to_solve,
+                ys[-1],
+                args=(rhs, t_new, ys[-1], fs),
+                atol=tol,
+                rtol=rtol,
+                maxiter=maxiter,
+            )
         ts[:-1] = ts[1:]
         ts[-1] = t_new
 

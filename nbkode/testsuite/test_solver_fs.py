@@ -19,6 +19,7 @@ import nbkode
 # TODO: implicit solvers for size > 1 are not working yet
 solvers_i = nbkode.get_solvers(implicit=True, fixed_step=True)
 solvers_e = nbkode.get_solvers(implicit=False, fixed_step=True)
+solvers = nbkode.get_solvers(fixed_step=True)
 
 
 y0_1 = np.atleast_1d(1.0)
@@ -33,14 +34,14 @@ def f2(t, x, k):
     return -k * x
 
 
-@pytest.mark.parametrize("solver", solvers_i + solvers_e)
+@pytest.mark.parametrize("solver", solvers)
 def test_f1_step(solver):
     solver = solver(f1, 0.0, y0_1, args=(0.01,))
     solver.step()
     solver.run(1)
 
 
-@pytest.mark.parametrize("solver", solvers_i + solvers_e)
+@pytest.mark.parametrize("solver", solvers)
 def test_f1(solver):
 
     solver = solver(f1, 0.0, y0_1, args=(0.01,))
@@ -50,14 +51,14 @@ def test_f1(solver):
     np.testing.assert_allclose(solver.y, np.exp(-0.01 * 10), atol=0.1)
 
 
-@pytest.mark.parametrize("solver", solvers_e)
+@pytest.mark.parametrize("solver", solvers)
 def test_f2_step(solver):
     solver = solver(f2, 0.0, y0_2, args=(np.asarray((0.01, 0.05)),))
     solver.step()
     solver.run(1)
 
 
-@pytest.mark.parametrize("solver", solvers_e)
+@pytest.mark.parametrize("solver", solvers)
 def test_f2(solver):
 
     solver = solver(f2, 0.0, y0_2, args=(np.asarray((0.01, 0.05)),))

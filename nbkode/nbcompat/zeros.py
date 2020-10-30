@@ -397,7 +397,7 @@ def j_newton(
 
 
 @numba.njit()
-def jacobian(func, x):
+def jacobian(func, x, args=()):
 
     eps = 1e-10
     J = np.zeros((len(x), len(x)), dtype=np.float64)
@@ -409,8 +409,8 @@ def jacobian(func, x):
         x1[i] += eps
         x2[i] -= eps
 
-        f1 = func(x1)
-        f2 = func(x2)
+        f1 = func(x1, *args)
+        f2 = func(x2, *args)
 
         J[: , i] = (f1 - f2) / (2 * eps)
 
@@ -418,7 +418,7 @@ def jacobian(func, x):
 
 
 @numba.njit()
-def newton_hd_impl(func, y,
+def newton_hd_impl(func, y, args=(),
                    atol=1.48e-8,
                    rtol=0.0,
                    maxiter=50,
@@ -429,14 +429,14 @@ def newton_hd_impl(func, y,
     At input, x holds the start value. The iteration continues
     until ||F|| < eps.
     """
-    value = func(y)
+    value = func(y, *args)
     distance = np.linalg.norm(value, ord=2)  # l2 norm of vector
     iteration_counter = 0
 
     while not isclose(distance, 0, rtol=rtol, atol=atol):
-        delta = np.linalg.solve(jacobian(func, y), -value)
+        delta = np.linalg.solve(jacobian(func, y, args), -value)
         y = y + delta
-        value = func(y)
+        value = func(y, *args)
         distance = np.linalg.norm(value, ord=2)
         iteration_counter += 1
 
@@ -446,12 +446,13 @@ def newton_hd_impl(func, y,
     return y, NewtonEnum.OK
 
 @numba.njit()
-def newton_hd(func, y0,
+def newton_hd(func, y0, args=(),
               atol=1.48e-8,
               rtol=0.0,
               maxiter=50,
               ):
-    y, flag = newton_hd_impl(func, y0, atol, rtol, maxiter)
+    y, flag = newton_hd_impl(func, y0, args,
+                             atol, rtol, maxiter)
     if flag is not NewtonEnum.OK:
         raise RuntimeError
     return y
