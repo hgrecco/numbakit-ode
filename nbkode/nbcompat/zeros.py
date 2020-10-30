@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 from scipy.optimize import zeros
 
-import numba
+from .nb_to_import import numba
 from .common import isclose
 
 
@@ -394,3 +394,64 @@ def j_newton(
     if my_flag is not NewtonEnum.OK:
         raise RuntimeError
     return p
+
+
+@numba.njit()
+def jacobian(func, x):
+
+    eps = 1e-10
+    J = np.zeros((len(x), len(x)), dtype=np.float64)
+
+    for i in range(len(x)):
+        x1 = x.copy()
+        x2 = x.copy()
+
+        x1[i] += eps
+        x2[i] -= eps
+
+        f1 = func(x1)
+        f2 = func(x2)
+
+        J[: , i] = (f1 - f2) / (2 * eps)
+
+    return J
+
+
+@numba.njit()
+def newton_hd_impl(func, y,
+                   atol=1.48e-8,
+                   rtol=0.0,
+                   maxiter=50,
+                   ):
+    """
+    Solve nonlinear system F=0 by Newton's method.
+    J is the Jacobian of F. Both F and J must be functions of x.
+    At input, x holds the start value. The iteration continues
+    until ||F|| < eps.
+    """
+    value = func(y)
+    distance = np.linalg.norm(value, ord=2)  # l2 norm of vector
+    iteration_counter = 0
+
+    while not isclose(distance, 0, rtol=rtol, atol=atol):
+        delta = np.linalg.solve(jacobian(func, y), -value)
+        y = y + delta
+        value = func(y)
+        distance = np.linalg.norm(value, ord=2)
+        iteration_counter += 1
+
+        if iteration_counter > maxiter:
+            return y, NewtonEnum.NOT_CONVERGED
+
+    return y, NewtonEnum.OK
+
+@numba.njit()
+def newton_hd(func, y0,
+              atol=1.48e-8,
+              rtol=0.0,
+              maxiter=50,
+              ):
+    y, flag = newton_hd_impl(func, y0, atol, rtol, maxiter)
+    if flag is not NewtonEnum.OK:
+        raise RuntimeError
+    return y

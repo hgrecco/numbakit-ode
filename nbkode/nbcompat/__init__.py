@@ -14,14 +14,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import os
-
 from .common import clip, isclose
-from .newton import j_newton, newton
+from .zeros import j_newton, newton, newton_hd
+from .nb_to_import import numba
 
-if os.environ.get("NBKODE_NONUMBA", 0):
-    from . import numbasub as numba
-else:
-    import numba
-
-__all__ = ["clip", "isclose", "j_newton", "newton", "numba"]
+__all__ = ["clip", "isclose", "j_newton", "newton", "numba", "newton_hd"]

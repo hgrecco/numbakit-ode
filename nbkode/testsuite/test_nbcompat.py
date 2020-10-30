@@ -22,8 +22,7 @@ from numpy.testing import (
 )
 from scipy.optimize import zeros as sp_zeros
 
-from nbkode import nbcompat as zeros
-from nbkode.nbcompat import numba
+from nbkode.nbcompat import numba, zeros
 
 cos = np.cos
 exp = np.exp
@@ -499,3 +498,15 @@ def test_gh9551_raise_error_if_disp_true():
 def test_jitted():
     f1j = numba.njit()(f1)
     assert_allclose(zeros.j_newton(f1j, 0), zeros.newton(f1, 0))
+
+
+from scipy.optimize import root
+
+
+def test_ndnewton():
+    @numba.njit()
+    def fff(x):
+        return x ** 2. - 10.
+    fff(0.0)
+    y0 = np.asarray([1., 1., 1.])
+    assert_allclose(root(fff, y0).x, zeros.newton_hd(fff, y0))
