@@ -17,15 +17,12 @@ from .common import NumbaStepModes
 # Do not import this automatically as we want to be able to disable Numba
 # and this requires not importing nbkode soon.
 names = [
-    "AdamsBashforth1",
-    "AdamsBashforth2",
-    "AdamsBashforth3",
-    "AdamsBashforth4",
-    "AdamsBashforth5",
-    # 'AdamsMoulton1', 'AdamsMoulton2', 'AdamsMoulton3', 'AdamsMoulton4', 'AdamsMoulton5',
-    "ForwardEuler",  #'BackwardEuler',
+    "AdamsBashforth1", "AdamsBashforth2", "AdamsBashforth3", "AdamsBashforth4", "AdamsBashforth5",
+    'AdamsMoulton1', 'AdamsMoulton2', 'AdamsMoulton3', 'AdamsMoulton4', 'AdamsMoulton5',
+    "ForwardEuler", 'BackwardEuler',
     "RungeKutta23",
     "RungeKutta45",
+    "DOP853",
 ]
 
 BOOLEANS = (True, False)
