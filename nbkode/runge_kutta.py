@@ -249,15 +249,15 @@ class DOP853(corevs.VariableStepRungeKutta):
     n_stages = dop853_coefficients.N_STAGES
     order = 8
     error_estimator_order = 7
-    A = dop853_coefficients.A[:n_stages, :n_stages]
+    A = np.ascontiguousarray(dop853_coefficients.A[:n_stages, :n_stages])
     B = dop853_coefficients.B
-    C = dop853_coefficients.C[:n_stages]
+    C = np.ascontiguousarray(dop853_coefficients.C[:n_stages])
     E3 = dop853_coefficients.E3
     E5 = dop853_coefficients.E5
     D = dop853_coefficients.D
 
-    A_EXTRA = dop853_coefficients.A[n_stages + 1:]
-    C_EXTRA = dop853_coefficients.C[n_stages + 1:]
+    A_EXTRA = np.ascontiguousarray(dop853_coefficients.A[n_stages + 1:])
+    C_EXTRA = np.ascontiguousarray(dop853_coefficients.C[n_stages + 1:])
 
     def __init__(
         self,
