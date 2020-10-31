@@ -15,7 +15,7 @@
 """
 
 from .common import clip, isclose
-from .zeros import j_newton, newton, newton_hd
 from .nb_to_import import numba
+from .zeros import j_newton, newton, newton_hd
 
 __all__ = ["clip", "isclose", "j_newton", "newton", "numba", "newton_hd"]

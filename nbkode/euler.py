@@ -20,7 +20,7 @@ from .corefs import BFixedStepBaseSolver, FFixedStepBaseSolver
 class ForwardEuler(FFixedStepBaseSolver):
     """The simple explicit (forward) Euler scheme
 
-        y[n+1] = y[n] + f(t[n], y[n]) * h
+    y[n+1] = y[n] + f(t[n], y[n]) * h
     """
 
     GROUP = "Euler"
@@ -34,7 +34,7 @@ Euler = ForwardEuler
 class BackwardEuler(BFixedStepBaseSolver):
     """The simple explicit (forward) Euler scheme
 
-        y[n+1] = y[n] + f(t[n+1], y[n+1]) * h
+    y[n+1] = y[n] + f(t[n+1], y[n+1]) * h
     """
 
     GROUP = "Euler"

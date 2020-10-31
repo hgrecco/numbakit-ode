@@ -14,6 +14,6 @@
 import os
 
 if os.environ.get("NBKODE_NONUMBA", 0):
-    from . import numbasub as numba
+    from . import numbasub as numba  # noqa: F401
 else:
-    import numba
+    import numba  # noqa: F401

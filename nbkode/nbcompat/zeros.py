@@ -15,8 +15,8 @@ import warnings
 import numpy as np
 from scipy.optimize import zeros
 
-from .nb_to_import import numba
 from .common import isclose
+from .nb_to_import import numba
 
 
 class NewtonEnum(enum.IntEnum):
@@ -204,7 +204,16 @@ def newton(
         )
 
     (full_output, r), my_flag = _newton(
-        func, x0, fprime, args, tol, maxiter, fprime2, x1, rtol, full_output,
+        func,
+        x0,
+        fprime,
+        args,
+        tol,
+        maxiter,
+        fprime2,
+        x1,
+        rtol,
+        full_output,
     )
 
     if my_flag is not NewtonEnum.OK:
@@ -388,7 +397,16 @@ def j_newton(
     """
 
     (full_output, r), my_flag = _j_newton(
-        func, x0, fprime, args, tol, maxiter, fprime2, x1, rtol, full_output,
+        func,
+        x0,
+        fprime,
+        args,
+        tol,
+        maxiter,
+        fprime2,
+        x1,
+        rtol,
+        full_output,
     )
     p, funcalls, itr, flag = r
     if my_flag is not NewtonEnum.OK:
@@ -412,17 +430,20 @@ def jacobian(func, x, args=()):
         f1 = func(x1, *args)
         f2 = func(x2, *args)
 
-        J[: , i] = (f1 - f2) / (2 * eps)
+        J[:, i] = (f1 - f2) / (2 * eps)
 
     return J
 
 
 @numba.njit()
-def newton_hd_impl(func, y, args=(),
-                   atol=1.48e-8,
-                   rtol=0.0,
-                   maxiter=50,
-                   ):
+def newton_hd_impl(
+    func,
+    y,
+    args=(),
+    atol=1.48e-8,
+    rtol=0.0,
+    maxiter=50,
+):
     """
     Solve nonlinear system F=0 by Newton's method.
     J is the Jacobian of F. Both F and J must be functions of x.
@@ -445,14 +466,17 @@ def newton_hd_impl(func, y, args=(),
 
     return y, NewtonEnum.OK
 
+
 @numba.njit()
-def newton_hd(func, y0, args=(),
-              atol=1.48e-8,
-              rtol=0.0,
-              maxiter=50,
-              ):
-    y, flag = newton_hd_impl(func, y0, args,
-                             atol, rtol, maxiter)
+def newton_hd(
+    func,
+    y0,
+    args=(),
+    atol=1.48e-8,
+    rtol=0.0,
+    maxiter=50,
+):
+    y, flag = newton_hd_impl(func, y0, args, atol, rtol, maxiter)
     if flag is not NewtonEnum.OK:
         raise RuntimeError
     return y

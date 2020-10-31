@@ -200,11 +200,10 @@ class _FixedStepBaseSolver(Solver):
     @staticmethod
     @numba.njit()
     def _interpolate(t_eval, extra_args):
-        """Interpolate solution at t_eval
-        """
+        """Interpolate solution at t_eval"""
         rhs, t, y, f = extra_args
         if not (t[0] <= t_eval <= t[-1]):
-            raise ValueError(f"Time to interpolate outside range")
+            raise ValueError("Time to interpolate outside range")
 
         y_out = np.empty(y[0].shape)
         for ndx in range(len(y_out)):

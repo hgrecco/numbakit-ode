@@ -23,7 +23,7 @@ names = [
     "AdamsBashforth4",
     "AdamsBashforth5",
     # 'AdamsMoulton1', 'AdamsMoulton2', 'AdamsMoulton3', 'AdamsMoulton4', 'AdamsMoulton5',
-    "ForwardEuler",  #'BackwardEuler',
+    "ForwardEuler",  # 'BackwardEuler',
     "RungeKutta23",
     "RungeKutta45",
 ]
@@ -44,7 +44,7 @@ def define_func(numba_enabled):
         os.environ["NBKODE_NONUMBA"] = "1"
 
     # Leave the import inside to ensure proper NBKODE_NONUMBA
-    import nbkode
+    import nbkode  # noqa: F401
     from nbkode.nbcompat import numba
 
     @numba.njit()
