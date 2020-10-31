@@ -41,7 +41,7 @@ def define_func(numba_enabled):
         os.environ["NBKODE_NONUMBA"] = "1"
 
     # Leave the import inside to ensure proper NBKODE_NONUMBA
-    import nbkode
+    import nbkode  # noqa: F401
     from nbkode.nbcompat import numba
 
     @numba.njit()

@@ -506,7 +506,8 @@ from scipy.optimize import root
 def test_ndnewton():
     @numba.njit()
     def fff(x):
-        return x ** 2. - 10.
+        return x ** 2.0 - 10.0
+
     fff(0.0)
-    y0 = np.asarray([1., 1., 1.])
+    y0 = np.asarray([1.0, 1.0, 1.0])
     assert_allclose(root(fff, y0).x, zeros.newton_hd(fff, y0))

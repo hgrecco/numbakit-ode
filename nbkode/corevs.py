@@ -11,7 +11,7 @@
 """
 
 
-from typing import Callable, Tuple
+from typing import Callable
 
 import numpy as np
 from scipy.integrate._ivp.common import (
@@ -144,7 +144,6 @@ def step_builder_E(A, B, C, E, error_exponent, atol, rtol, max_step):
 
 
 def step_builder_E5_E3(A, B, C, E5, E3, error_exponent, atol, rtol, max_step):
-
     @numba.njit
     def _step(t_bound, rhs, t, y, f, h, K):
 

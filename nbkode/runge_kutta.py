@@ -14,9 +14,8 @@ from typing import Callable
 
 import numpy as np
 
-from .nbcompat import numba
-from . import dop853_coefficients
-from . import corevs
+from . import corevs, dop853_coefficients
+from .nbcompat import numba  # noqa: F401
 
 
 class RungeKutta23(corevs.VariableStepRungeKutta):
@@ -256,8 +255,8 @@ class DOP853(corevs.VariableStepRungeKutta):
     E5 = dop853_coefficients.E5
     D = dop853_coefficients.D
 
-    A_EXTRA = np.ascontiguousarray(dop853_coefficients.A[n_stages + 1:])
-    C_EXTRA = np.ascontiguousarray(dop853_coefficients.C[n_stages + 1:])
+    A_EXTRA = np.ascontiguousarray(dop853_coefficients.A[n_stages + 1 :])
+    C_EXTRA = np.ascontiguousarray(dop853_coefficients.C[n_stages + 1 :])
 
     def __init__(
         self,
@@ -272,10 +271,19 @@ class DOP853(corevs.VariableStepRungeKutta):
     ):
         super().__init__(rhs, t0, y0, args, max_step=max_step, rtol=rtol, atol=atol)
 
-        self.K_extended = np.empty((dop853_coefficients.N_STAGES_EXTENDED,
-                                    y0.size), dtype=y0.dtype)
-        self.K = self.K_extended[:self.n_stages + 1]
+        self.K_extended = np.empty(
+            (dop853_coefficients.N_STAGES_EXTENDED, y0.size), dtype=y0.dtype
+        )
+        self.K = self.K_extended[: self.n_stages + 1]
 
         self._step = corevs.step_builder_E5_E3(
-            self.A, self.B, self.C, self.E5, self.E3, self.error_exponent, atol, rtol, max_step
+            self.A,
+            self.B,
+            self.C,
+            self.E5,
+            self.E3,
+            self.error_exponent,
+            atol,
+            rtol,
+            max_step,
         )

@@ -27,8 +27,7 @@ class _AdamsMoulton(BFixedStepBaseSolver):
 
 
 class AdamsMoulton1(_AdamsMoulton):
-    """The Adams–Bashforth method with ONE is equivalent to Euler
-    """
+    """The Adams–Bashforth method with ONE is equivalent to Euler"""
 
     COEFS = np.asarray([1.0, 0])
 
@@ -36,7 +35,7 @@ class AdamsMoulton1(_AdamsMoulton):
 class AdamsMoulton2(_AdamsMoulton):
     """The Adams–Bashforth method with TWO.
 
-        u[n+1] = u[n] + h * (3/2 *f(u[n], t[n]) - 1/2 * f(u[n-1], t[n-1]))
+    u[n+1] = u[n] + h * (3/2 *f(u[n], t[n]) - 1/2 * f(u[n-1], t[n-1]))
     """
 
     COEFS = np.asarray([1, 1]) / 2
@@ -45,8 +44,8 @@ class AdamsMoulton2(_AdamsMoulton):
 class AdamsMoulton3(_AdamsMoulton):
     """The Adams–Bashforth method with THREE.
 
-        u[n+1] = u[n] + h /12 .*(23*f(u[n], t[n]) - 16*f(u[n-1], t[n-1])
-                                + 5*f(u[n-2], t[n-2]))
+    u[n+1] = u[n] + h /12 .*(23*f(u[n], t[n]) - 16*f(u[n-1], t[n-1])
+                            + 5*f(u[n-2], t[n-2]))
 
     """
 
@@ -56,8 +55,8 @@ class AdamsMoulton3(_AdamsMoulton):
 class AdamsMoulton4(_AdamsMoulton):
     """The Adams–Bashforth method with FOUR.
 
-        u[n+1] = u[n] + h / 24 .* (55.*f(u[n], t[n]) - 59*f(u[n-1], t[n-1]) +
-                                   37*f(u[n-2], t[n-2]) - 9*f(u[n-3], t[n-3]))
+    u[n+1] = u[n] + h / 24 .* (55.*f(u[n], t[n]) - 59*f(u[n-1], t[n-1]) +
+                               37*f(u[n-2], t[n-2]) - 9*f(u[n-3], t[n-3]))
 
     """
 
@@ -67,9 +66,9 @@ class AdamsMoulton4(_AdamsMoulton):
 class AdamsMoulton5(_AdamsMoulton):
     """The Adams–Bashforth method with FIVE.
 
-        u[n+1] = u[n] + h / 24 .* (1901.*f(u[n], t[n]) - 2774*f(u[n-1], t[n-1]) +
-                                   2616*f(u[n-2], t[n-2]) - 1274*f(u[n-3], t[n-3]) +
-                                   251 *f(u[n-4], t[n-4]) )
+    u[n+1] = u[n] + h / 24 .* (1901.*f(u[n], t[n]) - 2774*f(u[n-1], t[n-1]) +
+                               2616*f(u[n-2], t[n-2]) - 1274*f(u[n-3], t[n-3]) +
+                               251 *f(u[n-4], t[n-4]) )
 
     """
 

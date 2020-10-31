@@ -95,8 +95,7 @@ def setup_time_f1_instantiate(package, integrator, jit_rhs_before):
 
 
 def time_f1_instantiate(package, integrator, jit_rhs_before):
-    """Measures the time required to instantiate the solver
-    """
+    """Measures the time required to instantiate the solver"""
     define_sol(package, integrator)
 
 
@@ -149,6 +148,9 @@ def time_f1_run10k(package, integrator, other):
 
 
 time_f1_run10k.setup = setup_time_f1_run10k
-time_f1_run10k.params = (PACKAGES, INTEGRATORS, (NumbaStepModes.INTERNAL_LOOP.name,
-                                                 NumbaStepModes.EXTERNAL_LOOP.name))
+time_f1_run10k.params = (
+    PACKAGES,
+    INTEGRATORS,
+    (NumbaStepModes.INTERNAL_LOOP.name, NumbaStepModes.EXTERNAL_LOOP.name),
+)
 time_f1_run10k.param_names = ["package", "integrator", "other"]
