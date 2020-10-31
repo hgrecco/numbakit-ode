@@ -27,3 +27,28 @@ from .adams_moulton import (
 from .core import get_solvers
 from .euler import BackwardEuler, Euler, ForwardEuler
 from .runge_kutta import RungeKutta23, RungeKutta45
+
+try:
+    from importlib.metadata import version
+except ImportError:
+    # Backport for Python < 3.8
+    from importlib_metadata import version
+
+try:  # pragma: no cover
+    __version__ = version("numbakit-ode")
+except Exception:  # pragma: no cover
+    # we seem to have a local copy not installed without setuptools
+    # so the reported version will be unknown
+    __version__ = "unknown"
+
+
+def test():
+    """Run all tests.
+
+    Returns
+    -------
+    unittest.TestResult
+    """
+    from .testsuite import run
+
+    return run()
