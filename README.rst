@@ -141,7 +141,7 @@ see CHANGES_
 
 
 .. _`NumPy`: http://www.numpy.org/
-.. _`SciPy`: http://www.numpy.org/
+.. _`SciPy`: http://www.scipy.org/
 .. _`Numba`: https://numba.pydata.org/
 .. _`pytest`: https://docs.pytest.org/
 .. _`airspeed velocity`: https://asv.readthedocs.io
