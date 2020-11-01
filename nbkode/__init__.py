@@ -24,7 +24,7 @@ from .adams_moulton import (
     AdamsMoulton4,
     AdamsMoulton5,
 )
-from .core import get_solvers
+from .core import get_solvers, get_groups
 from .euler import BackwardEuler, Euler, ForwardEuler
 from .runge_kutta import RungeKutta23, RungeKutta45
 

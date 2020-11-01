@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from collections.abc import Collection
 from numbers import Real
 from typing import Callable, Tuple, Union
@@ -23,7 +23,13 @@ from .nbcompat import numba
 from .util import CaseInsensitiveDict
 
 
-class Solver(ABC):
+class MetaSolver(ABCMeta):
+
+    def __repr__(cls):
+        return f"<  {cls.__name__}>"
+
+
+class Solver(ABC, metaclass=MetaSolver):
     """Base class for all solvers
 
     Parameters
@@ -141,7 +147,7 @@ class Solver(ABC):
 
         return self._interpolate(t, *self._steps_args(), *self._steps_extra_args())
 
-    def move_to(self, t: float):
+    def move_to(self, t: float) -> Tuple[np.ndarray, np.ndarray] :
         """Advance simulation upto t."""
         self._check_time(t)
         self._move_to(t, self._step, *self._steps_args(), *self._steps_extra_args())
@@ -207,6 +213,7 @@ class Solver(ABC):
     def _move_to(t_end: float, step, rhs, t, y, f, *extra_args):
         while t[-1] < t_end:
             step(t_end, rhs, t, y, f, *extra_args)
+        return t[-1], y[-1]
 
     @staticmethod
     @numba.njit
@@ -278,3 +285,7 @@ def get_solvers(*groups, implicit=None, fixed_step=None):
             m = tuple(Solver.SOLVERS.keys())
             raise KeyError(f"Group {group} not found. Valid values: {m}")
     return tuple(out)
+
+
+def get_groups():
+    return tuple(sorted(Solver.SOLVERS.keys()))
