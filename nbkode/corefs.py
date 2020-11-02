@@ -191,6 +191,10 @@ class _FixedStepBaseSolver(Solver):
 
     FIXED_STEP = True
 
+    @classmethod
+    def _step_builder_args(cls):
+        return (cls.COEFS, )
+
     def __init__(
         self,
         rhs: Callable,
@@ -244,6 +248,8 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
 
     IMPLICIT = False
 
+    _step_builder = forward_step_builder
+
     def __init__(
         self,
         rhs: Callable,
@@ -254,12 +260,6 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
         h: float = 1,
     ):
         super().__init__(rhs, t0, y0, args, h=h)
-
-        self._step = forward_step_builder(self.COEFS)
-
-    @staticmethod
-    def _step(t_bound, rhs, t, y, f):
-        raise RuntimeError("This should have been replaced during init.")
 
     def _steps_extra_args(self):
         return (self._h, )
@@ -288,6 +288,8 @@ class BFixedStepBaseSolver(_FixedStepBaseSolver):
 
     IMPLICIT = True
 
+    _step_builder = backward_step_builder
+
     def __init__(
         self,
         rhs: Callable,
@@ -305,11 +307,6 @@ class BFixedStepBaseSolver(_FixedStepBaseSolver):
         self.atol = atol
         self.rtol = rtol
         self.max_iter = max_iter
-        self._step = backward_step_builder(self.COEFS)
-
-    @staticmethod
-    def _step(t_bound, rhs, t, y, f):
-        raise RuntimeError("This should have been replaced during init.")
 
     def _steps_extra_args(self):
         return self._h, self.rtol, self.atol, self.max_iter

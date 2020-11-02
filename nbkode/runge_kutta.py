@@ -10,8 +10,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from typing import Callable
-
 import numpy as np
 
 from . import corevs
@@ -168,22 +166,11 @@ class RungeKutta23(corevs.VariableStepRungeKutta):
         dtype=float,
     )
 
-    def __init__(
-        self,
-        rhs: Callable,
-        t0: float,
-        y0: np.ndarray,
-        args: tuple = (),
-        *,
-        max_step=np.inf,
-        rtol=1e-3,
-        atol=1e-6,
-    ):
-        super().__init__(rhs, t0, y0, args, max_step=max_step, rtol=rtol, atol=atol)
+    _step_builder = step_builder
 
-        self._step = step_builder(
-            self.A, self.B, self.C, self.E, self.error_exponent
-        )
+    @classmethod
+    def _step_builder_args(cls):
+        return cls.A, cls.B, cls.C, cls.E, cls.error_exponent
 
 
 class RungeKutta45(corevs.VariableStepRungeKutta):
@@ -268,19 +255,8 @@ class RungeKutta45(corevs.VariableStepRungeKutta):
         dtype=float,
     )
 
-    def __init__(
-        self,
-        rhs: Callable,
-        t0: float,
-        y0: np.ndarray,
-        args: tuple = (),
-        *,
-        max_step=np.inf,
-        rtol=1e-3,
-        atol=1e-6,
-    ):
-        super().__init__(rhs, t0, y0, args, max_step=max_step, rtol=rtol, atol=atol)
+    _step_builder = step_builder
 
-        self._step = step_builder(
-            self.A, self.B, self.C, self.E, self.error_exponent
-        )
+    @classmethod
+    def _step_builder_args(cls):
+        return cls.A, cls.B, cls.C, cls.E, cls.error_exponent

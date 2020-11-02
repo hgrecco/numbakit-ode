@@ -26,7 +26,7 @@ from .util import CaseInsensitiveDict
 class MetaSolver(ABCMeta):
 
     def __repr__(cls):
-        return f"<  {cls.__name__}>"
+        return f"<{cls.__name__}>"
 
 
 class Solver(ABC, metaclass=MetaSolver):
@@ -88,6 +88,10 @@ class Solver(ABC, metaclass=MetaSolver):
     #: extra arguments for the user callable
     args: np.ndarray
 
+    #: Function that build the _step function for a particular method.
+    #: (*args) -> Callable
+    _step_builder: Callable
+
     def __init__(self, rhs: Callable, t0: float, y0: np.ndarray, args: tuple = ()):
 
         y0 = np.ascontiguousarray(y0)
@@ -109,13 +113,27 @@ class Solver(ABC, metaclass=MetaSolver):
         self._ys = np.full((self.LEN_HISTORY, y0.size), y0, dtype=float)
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         if cls.LEN_HISTORY and cls.LEN_HISTORY < 1:
             raise ValueError(
                 f"While defining {cls.__name__}, "
                 f"LEN_HISTORY cannot be smaller than 1"
             )
-        if cls.GROUP and not cls.__name__.startswith("_"):
+        if cls.is_final_class():
             cls.SOLVERS[cls.GROUP].append(cls)
+            cls._step = staticmethod(cls._step_builder(*cls._step_builder_args()))
+
+    @classmethod
+    @abstractmethod
+    def _step_builder_args(cls):
+        """Arguments provided to the _step_builder function.
+        """
+
+    @classmethod
+    def is_final_class(cls):
+        """True if the class represents a method and not a family/group of methods.
+        """
+        return cls.GROUP and not cls.__name__.startswith("_")
 
     @property
     def t(self):

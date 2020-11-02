@@ -120,10 +120,11 @@ class VariableStepRungeKutta(Solver):
     order: int
     error_estimator_order: int
     n_stages: int
+    error_exponent: float
 
     def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
         cls.error_exponent = -1 / (cls.error_estimator_order + 1)
+        super().__init_subclass__(**kwargs)
 
     def __init__(
         self,
@@ -158,7 +159,3 @@ class VariableStepRungeKutta(Solver):
 
     def _steps_extra_args(self):
         return self.h, self.K, self.rtol, self.atol, self.max_step
-
-    @staticmethod
-    def _step(t_bound, rhs, t, y, f):
-        raise RuntimeError("This should have been replaced during init.")

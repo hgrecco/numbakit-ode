@@ -168,6 +168,19 @@ class DOP853(corevs.VariableStepRungeKutta):
     A_EXTRA = np.ascontiguousarray(dop853_coefficients.A[n_stages + 1 :])
     C_EXTRA = np.ascontiguousarray(dop853_coefficients.C[n_stages + 1 :])
 
+    _step_builder = step_builder
+
+    @classmethod
+    def _step_builder_args(cls):
+        return (
+            cls.A,
+            cls.B,
+            cls.C,
+            cls.E5,
+            cls.E3,
+            cls.error_exponent
+        )
+
     def __init__(
         self,
         rhs: Callable,
@@ -186,11 +199,3 @@ class DOP853(corevs.VariableStepRungeKutta):
         )
         self.K = self.K_extended[: self.n_stages + 1]
 
-        self._step = step_builder(
-            self.A,
-            self.B,
-            self.C,
-            self.E5,
-            self.E3,
-            self.error_exponent
-        )
