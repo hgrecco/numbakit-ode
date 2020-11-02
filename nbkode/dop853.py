@@ -186,13 +186,13 @@ class DOP853(corevs.VariableStepRungeKutta):
         rhs: Callable,
         t0: float,
         y0: np.ndarray,
-        args: tuple = (),
+        params: np.ndarray = None,
         *,
         max_step=np.inf,
         rtol=1e-3,
         atol=1e-6,
     ):
-        super().__init__(rhs, t0, y0, args, max_step=max_step, rtol=rtol, atol=atol)
+        super().__init__(rhs, t0, y0, params, max_step=max_step, rtol=rtol, atol=atol)
 
         self.K_extended = np.empty(
             (dop853_coefficients.N_STAGES_EXTENDED, y0.size), dtype=y0.dtype

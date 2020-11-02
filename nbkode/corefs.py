@@ -200,11 +200,11 @@ class _FixedStepBaseSolver(Solver):
         rhs: Callable,
         t0: float,
         y0: np.ndarray,
-        args: tuple = (),
+        params: np.ndarray = None,
         *,
         h: float = 1,
     ):
-        super().__init__(rhs, t0, y0, args)
+        super().__init__(rhs, t0, y0, params)
 
         # TODO: CHECK VALID VALUES
         self._h = h
@@ -255,11 +255,11 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
         rhs: Callable,
         t0: float,
         y0: np.ndarray,
-        args: tuple = (),
+        params: np.ndarray = None,
         *,
         h: float = 1,
     ):
-        super().__init__(rhs, t0, y0, args, h=h)
+        super().__init__(rhs, t0, y0, params, h=h)
 
     def _steps_extra_args(self):
         return (self._h, )
@@ -295,14 +295,14 @@ class BFixedStepBaseSolver(_FixedStepBaseSolver):
         rhs: Callable,
         t0: float,
         y0: np.ndarray,
-        args: tuple = (),
+        params: np.ndarray = None,
         *,
         h: float = 1,
         rtol=0.0,
         atol=1.48e-8,
         max_iter=50,
     ):
-        super().__init__(rhs, t0, y0, args, h=h)
+        super().__init__(rhs, t0, y0, params, h=h)
 
         self.atol = atol
         self.rtol = rtol

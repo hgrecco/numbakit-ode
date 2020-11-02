@@ -42,8 +42,8 @@ class Solver(ABC, metaclass=MetaSolver):
         Initial time.
     y0 : array_like, shape (n,)
         Initial state.
-    args : tuple
-        Extra arguments to be passed to the fun as ``fun(t, y, *args)``
+    params : array_like
+        Extra arguments to be passed to the fun as ``fun(t, y, params)``
 
     Attributes
     ----------
@@ -70,11 +70,13 @@ class Solver(ABC, metaclass=MetaSolver):
     FIXED_STEP: bool
 
     #: Callable provided by the user
+    #: The signature should be (t: float, y: ndarray)  -> ndarray
+    #: or
+    #: The signature should be (t: float, y: ndarray, p: ndarray)  -> ndarray
     rhs: Callable
 
-    #: Reduced and njitted rhs
-    #: (compiled and arguments fixed)
-    jrhs: Callable
+    #: user rhs (same as rhs if it was originally jitted and with the right signature)
+    user_rhs: Callable
 
     #: Last LEN_HISTORY times
     _ts: np.ndarray
@@ -86,28 +88,35 @@ class Solver(ABC, metaclass=MetaSolver):
     _ys: np.ndarray
 
     #: extra arguments for the user callable
-    args: np.ndarray
+    params: np.ndarray or None
 
     #: Function that build the _step function for a particular method.
     #: (*args) -> Callable
     _step_builder: Callable
 
-    def __init__(self, rhs: Callable, t0: float, y0: np.ndarray, args: tuple = ()):
+    def __init__(self, rhs: Callable, t0: float, y0: np.ndarray, params: np.ndarray=None):
 
         y0 = np.ascontiguousarray(y0)
+        if params is not None:
+            params = np.ascontiguousarray(params)
 
-        self.rhs = _rhs = rhs
+        self.user_rhs = rhs
 
-        if not hasattr(_rhs, "inspect_llvm"):
-            _rhs = numba.njit()(rhs)
-            _ = _rhs(t0, y0, *args)
+        # TODO: is therse something more robust, such as a numba function
+        if not hasattr(rhs, "inspect_llvm"):
+            rhs = numba.njit()(rhs)
 
-        @numba.njit()
-        def jrhs(t, y):
-            return _rhs(t, y, *args)
+        # TODO: A better way to make it partial?
+        if params is None:
+            self.rhs = rhs
+        else:
+            @numba.njit()
+            def _rhs(t, y):
+                return rhs(t, y, params)
 
-        f = jrhs(t0, y0)
-        self.jrhs = jrhs
+            self.rhs = _rhs
+
+        f = self.rhs(t0, y0)
         self._fs = np.full((self.LEN_HISTORY, y0.size), f, dtype=float)
         self._ts = np.full(self.LEN_HISTORY, t0, dtype=float)
         self._ys = np.full((self.LEN_HISTORY, y0.size), y0, dtype=float)
@@ -194,8 +203,8 @@ class Solver(ABC, metaclass=MetaSolver):
                 t,
                 self._step,
                 self._interpolate,
-                *self._steps_args,
-                *self._steps_extra_args,
+                *self._steps_args(),
+                *self._steps_extra_args(),
             )
 
     @abstractmethod
@@ -204,7 +213,7 @@ class Solver(ABC, metaclass=MetaSolver):
         raise NotImplementedError
 
     def _steps_args(self):
-        return self.jrhs, self._ts, self._ys, self._fs
+        return self.rhs, self._ts, self._ys, self._fs
 
     def _steps_extra_args(self) -> tuple:
         """Arguments to be passed to _step after t_bound."""
@@ -255,7 +264,7 @@ class Solver(ABC, metaclass=MetaSolver):
 
     @staticmethod
     @numba.njit
-    def _run_eval_numba(
+    def _run_eval(
         t_eval: np.ndarray,
         step,
         interpolate,

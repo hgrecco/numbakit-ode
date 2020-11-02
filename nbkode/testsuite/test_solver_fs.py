@@ -36,7 +36,7 @@ def f2(t, x, k):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_f1_step(solver):
-    solver = solver(f1, 0.0, y0_1, args=(0.01,))
+    solver = solver(f1, 0.0, y0_1, params=(0.01,))
     solver.step()
     solver.run(1)
 
@@ -44,7 +44,7 @@ def test_f1_step(solver):
 @pytest.mark.parametrize("solver", solvers)
 def test_f1(solver):
 
-    solver = solver(f1, 0.0, y0_1, args=(0.01,))
+    solver = solver(f1, 0.0, y0_1, params=(0.01,))
     solver.run(10)
 
     # TODO: This is a rather large tolerance.
@@ -53,7 +53,7 @@ def test_f1(solver):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_f2_step(solver):
-    solver = solver(f2, 0.0, y0_2, args=(np.asarray((0.01, 0.05)),))
+    solver = solver(f2, 0.0, y0_2, params=(0.01, 0.05))
     solver.step()
     solver.run(1)
 
@@ -61,7 +61,7 @@ def test_f2_step(solver):
 @pytest.mark.parametrize("solver", solvers)
 def test_f2(solver):
 
-    solver = solver(f2, 0.0, y0_2, args=(np.asarray((0.01, 0.05)),))
+    solver = solver(f2, 0.0, y0_2, params=(0.01, 0.05))
     solver.run(10)
 
     # TODO: This is a rather large tolerance.
