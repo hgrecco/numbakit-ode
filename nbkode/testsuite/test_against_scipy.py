@@ -13,12 +13,13 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 from scipy import integrate
 
+import nbkode.dop853
 from nbkode import runge_kutta
 
 equivalents = [
     (runge_kutta.RungeKutta23, integrate.RK23),
     (runge_kutta.RungeKutta45, integrate.RK45),
-    (runge_kutta.DOP853, integrate.DOP853),
+    (nbkode.dop853.DOP853, integrate.DOP853),
 ]
 
 

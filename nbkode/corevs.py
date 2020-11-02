@@ -20,7 +20,7 @@ from scipy.integrate._ivp.common import (
     validate_tol,
 )
 
-from nbkode.nbcompat import clip, numba
+from nbkode.nbcompat import numba
 
 from .core import Solver
 
@@ -88,124 +88,6 @@ def rk_step(rhs, t, y, f, h, A, B, C, K):
     return y_new, f_new
 
 
-def step_builder_E(A, B, C, E, error_exponent, atol, rtol, max_step):
-    @numba.njit
-    def _step(t_bound, rhs, t, y, f, h, K):
-
-        t_cur = t[-1]
-        y_cur = y[-1]
-        f_cur = f[-1]
-
-        min_step = 10 * (np.nextafter(t_cur, np.inf) - t_cur)
-        _h = clip(h[0], min_step, max_step)
-        step_rejected = False
-        while True:
-            if _h < min_step:
-                raise RuntimeError("Required step is too small.")
-
-            t_new = min(t_cur + _h, t_bound)
-            _h = t_new - t_cur
-
-            y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
-
-            # Estimate norm of scaled error
-            scale = atol + np.maximum(np.abs(y_cur), np.abs(y_new)) * rtol
-            scaled_error = (K.T @ E) * _h / scale
-            error_norm = (np.sum(scaled_error ** 2) / scaled_error.size) ** 0.5
-
-            if error_norm < 1:
-                if error_norm == 0:
-                    factor = MAX_FACTOR
-                else:
-                    factor = min(MAX_FACTOR, SAFETY * error_norm ** error_exponent)
-
-                if step_rejected:
-                    factor = min(1, factor)
-
-                _h *= factor
-
-                break
-            else:
-                _h *= max(MIN_FACTOR, SAFETY * error_norm ** error_exponent)
-                step_rejected = True
-
-        f[:-1] = f[1:]
-        f[-1] = f_new
-
-        t[:-1] = t[1:]
-        t[-1] = t_new
-
-        y[:-1] = y[1:]
-        y[-1] = y_new
-
-        h[0] = _h
-
-    return _step
-
-
-def step_builder_E5_E3(A, B, C, E5, E3, error_exponent, atol, rtol, max_step):
-    @numba.njit
-    def _step(t_bound, rhs, t, y, f, h, K):
-
-        t_cur = t[-1]
-        y_cur = y[-1]
-        f_cur = f[-1]
-
-        min_step = 10 * (np.nextafter(t_cur, np.inf) - t_cur)
-        _h = clip(h[0], min_step, max_step)
-        step_rejected = False
-        while True:
-            if _h < min_step:
-                raise RuntimeError("Required step is too small.")
-
-            t_new = min(t_cur + _h, t_bound)
-            _h = t_new - t_cur
-
-            y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
-
-            # Estimate norm of scaled error
-            scale = atol + np.maximum(np.abs(y_cur), np.abs(y_new)) * rtol
-
-            err5 = np.dot(K.T, E5) / scale
-            err3 = np.dot(K.T, E3) / scale
-            err5_norm_2 = np.linalg.norm(err5) ** 2
-            err3_norm_2 = np.linalg.norm(err3) ** 2
-            if err5_norm_2 == 0 and err3_norm_2 == 0:
-                error_norm = 0.0
-            else:
-                denom = err5_norm_2 + 0.01 * err3_norm_2
-                error_norm = np.abs(_h) * err5_norm_2 / np.sqrt(denom * len(scale))
-
-            if error_norm < 1:
-                if error_norm == 0:
-                    factor = MAX_FACTOR
-                else:
-                    factor = min(MAX_FACTOR, SAFETY * error_norm ** error_exponent)
-
-                if step_rejected:
-                    factor = min(1, factor)
-
-                _h *= factor
-
-                break
-            else:
-                _h *= max(MIN_FACTOR, SAFETY * error_norm ** error_exponent)
-                step_rejected = True
-
-        f[:-1] = f[1:]
-        f[-1] = f_new
-
-        t[:-1] = t[1:]
-        t[-1] = t_new
-
-        y[:-1] = y[1:]
-        y[-1] = y_new
-
-        h[0] = _h
-
-    return _step
-
-
 class VariableStepRungeKutta(Solver):
     """Base class for explicit Runge-Kutta methods.
 
@@ -250,9 +132,9 @@ class VariableStepRungeKutta(Solver):
         y0: np.ndarray,
         args: tuple = (),
         *,
-        max_step=np.inf,
         rtol=1e-3,
         atol=1e-6,
+        max_step=np.inf,
     ):
         super().__init__(rhs, t0, y0, args)
 
@@ -275,7 +157,7 @@ class VariableStepRungeKutta(Solver):
         self.K = np.empty((self.n_stages + 1, self.y.size), dtype=float)
 
     def _steps_extra_args(self):
-        return self.h, self.K
+        return self.h, self.K, self.rtol, self.atol, self.max_step
 
     @staticmethod
     def _step(t_bound, rhs, t, y, f):

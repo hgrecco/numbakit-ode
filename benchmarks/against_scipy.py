@@ -11,6 +11,7 @@
 import numpy as np
 from scipy import integrate
 
+import nbkode.dop853
 from nbkode import runge_kutta
 from nbkode.nbcompat import numba
 
@@ -25,7 +26,7 @@ by_name = {
     "nbkode": {
         "RungeKutta23": runge_kutta.RungeKutta23,
         "RungeKutta45": runge_kutta.RungeKutta45,
-        "DOP853": runge_kutta.DOP853,
+        "DOP853": nbkode.dop853.DOP853,
     },
 }
 
