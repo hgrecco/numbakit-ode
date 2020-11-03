@@ -1,0 +1,7 @@
+matplotlib
+nbsphinx
+numpy
+numba
+scipy
+pytest
+pygments>=2.4
