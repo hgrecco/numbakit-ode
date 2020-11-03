@@ -24,7 +24,6 @@ from .util import CaseInsensitiveDict
 
 
 class MetaSolver(ABCMeta):
-
     def __repr__(cls):
         return f"<{cls.__name__}>"
 
@@ -94,7 +93,9 @@ class Solver(ABC, metaclass=MetaSolver):
     #: (*args) -> Callable
     _step_builder: Callable
 
-    def __init__(self, rhs: Callable, t0: float, y0: np.ndarray, params: np.ndarray=None):
+    def __init__(
+        self, rhs: Callable, t0: float, y0: np.ndarray, params: np.ndarray = None
+    ):
 
         y0 = np.ascontiguousarray(y0)
         if params is not None:
@@ -110,6 +111,7 @@ class Solver(ABC, metaclass=MetaSolver):
         if params is None:
             self.rhs = rhs
         else:
+
             @numba.njit()
             def _rhs(t, y):
                 return rhs(t, y, params)
@@ -135,13 +137,11 @@ class Solver(ABC, metaclass=MetaSolver):
     @classmethod
     @abstractmethod
     def _step_builder_args(cls):
-        """Arguments provided to the _step_builder function.
-        """
+        """Arguments provided to the _step_builder function."""
 
     @classmethod
     def is_final_class(cls):
-        """True if the class represents a method and not a family/group of methods.
-        """
+        """True if the class represents a method and not a family/group of methods."""
         return cls.GROUP and not cls.__name__.startswith("_")
 
     @property
@@ -174,7 +174,7 @@ class Solver(ABC, metaclass=MetaSolver):
 
         return self._interpolate(t, *self._steps_args(), *self._steps_extra_args())
 
-    def move_to(self, t: float) -> Tuple[np.ndarray, np.ndarray] :
+    def move_to(self, t: float) -> Tuple[np.ndarray, np.ndarray]:
         """Advance simulation upto t."""
         self._check_time(t)
         self._move_to(t, self._step, *self._steps_args(), *self._steps_extra_args())

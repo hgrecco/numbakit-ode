@@ -12,8 +12,7 @@
 
 
 def run():
-    """Run all tests.
-    """
+    """Run all tests."""
 
     try:
         import pytest

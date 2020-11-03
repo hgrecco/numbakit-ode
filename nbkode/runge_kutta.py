@@ -13,8 +13,8 @@
 import numpy as np
 
 from . import corevs
-from .corevs import rk_step, MAX_FACTOR, SAFETY, MIN_FACTOR
-from .nbcompat import numba, clip  # noqa: F401
+from .corevs import MAX_FACTOR, MIN_FACTOR, SAFETY, rk_step
+from .nbcompat import clip, numba  # noqa: F401
 
 
 def step_builder(A, B, C, E, error_exponent):

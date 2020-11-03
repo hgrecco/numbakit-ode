@@ -193,7 +193,7 @@ class _FixedStepBaseSolver(Solver):
 
     @classmethod
     def _step_builder_args(cls):
-        return (cls.COEFS, )
+        return (cls.COEFS,)
 
     def __init__(
         self,
@@ -262,7 +262,7 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
         super().__init__(rhs, t0, y0, params, h=h)
 
     def _steps_extra_args(self):
-        return (self._h, )
+        return (self._h,)
 
 
 class BFixedStepBaseSolver(_FixedStepBaseSolver):

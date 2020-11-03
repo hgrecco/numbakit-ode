@@ -15,7 +15,7 @@ import numba
 import numpy as np
 
 from nbkode import corevs, dop853_coefficients
-from nbkode.corevs import rk_step, MAX_FACTOR, SAFETY, MIN_FACTOR
+from nbkode.corevs import MAX_FACTOR, MIN_FACTOR, SAFETY, rk_step
 from nbkode.nbcompat import clip
 
 
@@ -172,14 +172,7 @@ class DOP853(corevs.VariableStepRungeKutta):
 
     @classmethod
     def _step_builder_args(cls):
-        return (
-            cls.A,
-            cls.B,
-            cls.C,
-            cls.E5,
-            cls.E3,
-            cls.error_exponent
-        )
+        return (cls.A, cls.B, cls.C, cls.E5, cls.E3, cls.error_exponent)
 
     def __init__(
         self,
@@ -198,4 +191,3 @@ class DOP853(corevs.VariableStepRungeKutta):
             (dop853_coefficients.N_STAGES_EXTENDED, y0.size), dtype=y0.dtype
         )
         self.K = self.K_extended[: self.n_stages + 1]
-
