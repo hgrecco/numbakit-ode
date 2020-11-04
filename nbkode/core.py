@@ -170,7 +170,7 @@ class Solver(ABC, metaclass=MetaSolver):
     def interpolate(self, t):
         """Interpolate solution at t."""
         if not (self._ts[0] <= t <= self._ts[-1]):
-            raise ValueError(f"Time {t=} to interpolate outside range")
+            raise ValueError(f"Time {t} to interpolate outside range")
 
         return self._interpolate(t, *self._steps_args(), *self._steps_extra_args())
 
