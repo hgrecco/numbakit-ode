@@ -10,7 +10,7 @@ env:
   - PKGS="python=3.7 flake8 black==19.10b0 isort"  # Have linters fail first and quickly
   - PKGS="python=3.7 numpy scipy numba"
   - PKGS="python=3.8 numpy scipy numba"
-  - PKGS="python=3.9 numpy scipy numba"
+#  - PKGS="python=3.9 numpy scipy numba"
 
   # TODO: pandas tests
   # - PKGS="python=3.7 numpy pandas uncertainties pandas"
@@ -43,7 +43,7 @@ install:
 
 script:
   - if [[ $LINT == 0 && $DOCS == 0 ]]; then python -bb -m pytest $TEST_OPTS; fi
-  - if [[ $LINT == 1 ]]; then black -t py36 --check . && isort -rc -c . && flake8; fi
+  - if [[ $LINT == 1 ]]; then black -t py38 --check . && isort -rc -c . && flake8; fi
   - if [[ $DOCS == 1 ]]; then PYTHONPATH=$PWD sphinx-build -n -j auto -b html -d build/doctrees docs build/html; fi
   - if [[ $DOCS == 1 ]]; then PYTHONPATH=$PWD sphinx-build -a -j auto -b doctest -d build/doctrees docs build/doctest; fi
   - if [[ $LINT == 0 && $DOCS == 0 ]]; then coverage report -m; fi
