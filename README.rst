@@ -10,13 +10,12 @@
     :target: https://pypi.python.org/pypi/numbakit-ode
     :alt: Python Versions
 
-.. image:: https://travis-ci.org/hgrecco/numbakit-ode.svg?branch=master
+.. image:: https://travis-ci.org/hgrecco/numbakit-ode.svg?branch=main
     :target: https://travis-ci.org/hgrecco/numbakit-ode
-    :alt: CI
 
-.. image:: https://coveralls.io/repos/github/hgrecco/numbakit-ode/badge.svg?branch=master
-    :target: https://coveralls.io/github/hgrecco/numbakit-ode?branch=master
-    :alt: Coverage
+.. image:: https://coveralls.io/repos/github/hgrecco/numbakit-ode/badge.svg?branch=main
+    :target: https://coveralls.io/github/hgrecco/numbakit-ode?branch=main
+
 
 .. image:: https://readthedocs.org/projects/numbakit-ode/badge/
     :target: http://numbakit-ode.readthedocs.org/
