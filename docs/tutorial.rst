@@ -28,7 +28,7 @@ A few important things:
 1. The first argument has to be the time (even if you do not use it).
 2. The second argument has to be the variable and accept a numpy array.
 
-Let's integrate this equation using a RungeKutta45_ to a set of specific
+Let's integrate this equation using a **RungeKutta45** to a set of specific
 time points, with `1` as the initial value.
 
 .. doctest::

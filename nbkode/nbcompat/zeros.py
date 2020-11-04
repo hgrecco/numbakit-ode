@@ -52,15 +52,18 @@ def newton(
     """
     Find a zero of a real or complex function using the Newton-Raphson
     (or secant or Halley's) method.
+
     Find a zero of the function `func` given a nearby starting point `x0`.
     The Newton-Raphson method is used if the derivative `fprime` of `func`
     is provided, otherwise the secant method is used. If the second order
     derivative `fprime2` of `func` is also provided, then Halley's method is
     used.
+
     If `x0` is a sequence with more than one item, then `newton` returns an
     array, and `func` must be vectorized and return a sequence or array of the
     same shape as its first argument. If `fprime` or `fprime2` is given, then
     its return must also have the same shape.
+
     Parameters
     ----------
     func : callable
@@ -106,6 +109,7 @@ def newton(
         Ignored if `x0` is not scalar.
         *Note: this has little to do with displaying, however,
         the `disp` keyword cannot be renamed for backwards compatibility.*
+
     Returns
     -------
     root : float, sequence, or ndarray
@@ -120,10 +124,12 @@ def newton(
     zero_der : ndarray of bool, optional
         Present if ``full_output=True`` and `x0` is non-scalar.
         For vector functions, indicates which elements had a zero derivative.
+
     See Also
     --------
     brentq, brenth, ridder, bisect
     fsolve : find zeros in N dimensions.
+
     Notes
     -----
     The convergence rate of the Newton-Raphson method is quadratic,
@@ -139,20 +145,25 @@ def newton(
     interval where the function changes sign. The brentq algorithm
     is recommended for general use in one dimensional problems
     when such an interval has been found.
+
     When `newton` is used with arrays, it is best suited for the following
     types of problems:
+
     * The initial guesses, `x0`, are all relatively the same distance from
       the roots.
     * Some or all of the extra arguments, `args`, are also arrays so that a
       class of similar problems can be solved together.
     * The size of the initial guesses, `x0`, is larger than O(100) elements.
       Otherwise, a naive loop may perform as well or better than a vector.
+
     Examples
     --------
+
     >>> from scipy import optimize
     >>> import matplotlib.pyplot as plt
     >>> def f(x):
     ...     return (x**3 - 1)  # only one real root at x = 1
+
     ``fprime`` is not provided, use the secant method:
     >>> root = optimize.newton(f, 1.5)
     >>> root
@@ -160,15 +171,18 @@ def newton(
     >>> root = optimize.newton(f, 1.5, fprime2=lambda x: 6 * x)
     >>> root
     1.0000000000000016
+
     Only ``fprime`` is provided, use the Newton-Raphson method:
     >>> root = optimize.newton(f, 1.5, fprime=lambda x: 3 * x**2)
     >>> root
     1.0
+
     Both ``fprime2`` and ``fprime`` are provided, use Halley's method:
     >>> root = optimize.newton(f, 1.5, fprime=lambda x: 3 * x**2,
     ...                        fprime2=lambda x: 6 * x)
     >>> root
     1.0
+
     When we want to find zeros for a set of related starting values and/or
     function parameters, we can provide both of those as an array of inputs:
     >>> f = lambda x, a: x**3 - a
@@ -177,12 +191,14 @@ def newton(
     >>> x = np.random.randn(100)
     >>> a = np.arange(-50, 50)
     >>> vec_res = optimize.newton(f, x, fprime=fder, args=(a, ))
+
     The above is the equivalent of solving for each value in ``(x, a)``
     separately in a for-loop, just faster:
     >>> loop_res = [optimize.newton(f, x0, fprime=fder, args=(a0,))
     ...             for x0, a0 in zip(x, a)]
     >>> np.allclose(vec_res, loop_res)
     True
+
     Plot the results found for all values of ``a``:
     >>> analytical_result = np.sign(a) * np.abs(a)**(1/3)
     >>> fig = plt.figure()
@@ -192,7 +208,9 @@ def newton(
     >>> ax.set_xlabel('$a$')
     >>> ax.set_ylabel('$x$ where $f(x, a)=0$')
     >>> plt.show()
+
     """
+
     if tol <= 0:
         raise ValueError("tol too small (%g <= 0)" % tol)
     maxiter = operator.index(maxiter)
@@ -446,6 +464,7 @@ def newton_hd_impl(
 ):
     """
     Solve nonlinear system F=0 by Newton's method.
+
     J is the Jacobian of F. Both F and J must be functions of x.
     At input, x holds the start value. The iteration continues
     until ||F|| < eps.
