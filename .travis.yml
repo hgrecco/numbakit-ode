@@ -36,7 +36,7 @@ before_install:
 install:
   - conda create -n travis $PKGS pytest pytest-cov coveralls
   - source activate travis
-  - if [[ $PKGS =~ flake8 ]]; then LINT=1; else LINT=0; fi
+  - if [[ $PKGS =~ pre-commit ]]; then LINT=1; else LINT=0; fi
   - if [[ $PKGS =~ sphinx ]]; then DOCS=1; else DOCS=0; fi
   - conda list
   - pip install .
