@@ -2,10 +2,6 @@
     :target: https://pypi.python.org/pypi/numbakit-ode
     :alt: Latest Version
 
-.. image:: https://readthedocs.org/projects/pip/badge/
-    :target: http://numbakit-ode.readthedocs.org/
-    :alt: Documentation
-
 .. image:: https://img.shields.io/pypi/l/numbakit-ode.svg
     :target: https://pypi.python.org/pypi/numbakit-ode
     :alt: License
