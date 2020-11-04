@@ -10,6 +10,7 @@ env:
   - PKGS="python=3.8 pre-commit"  # Have linters fail first and quickly
   - PKGS="python=3.7 numpy scipy numba"
   - PKGS="python=3.8 numpy scipy numba"
+  - PKGS="python=3.8 numpy scipy numba" NBKODE_NONUMBA="1"
 #  - PKGS="python=3.9 numpy scipy numba"
 
   # TODO: pandas tests
