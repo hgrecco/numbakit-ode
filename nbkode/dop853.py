@@ -11,12 +11,11 @@
 
 from typing import Callable
 
-import numba
 import numpy as np
 
 from nbkode import corevs, dop853_coefficients
 from nbkode.corevs import MAX_FACTOR, MIN_FACTOR, SAFETY, rk_step
-from nbkode.nbcompat import clip
+from nbkode.nbcompat import clip, numba
 
 
 def step_builder(A, B, C, E5, E3, error_exponent):
