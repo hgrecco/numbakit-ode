@@ -38,3 +38,5 @@ dask-worker-space
 # airspeed velocity bechmark
 .asv/
 tmp/
+
+.pytest_cache

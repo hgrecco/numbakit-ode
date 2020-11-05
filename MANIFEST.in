@@ -1,0 +1,11 @@
+include AUTHORS CHANGES LICENSE README.rst BADGES.rst version.txt .coveragerc .readthedocs.yml
+include .pre-commit-config.yaml asv.conf.json
+recursive-include nbkode *
+recursive-include docs *
+recursive-include benchmarks *
+prune docs/_build
+prune docs/_themes/.git
+exclude nbkode/testsuite/.pytest_cache
+exclude .editorconfig bors.toml pull_request_template.md requirements_docs.txt version.py
+global-exclude *.pyc *~ .DS_Store *__pycache__* *.pyo .travis-exclude.yml
+
