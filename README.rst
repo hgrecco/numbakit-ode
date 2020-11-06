@@ -65,7 +65,7 @@ or filter by characteristics or group name (or names).
 Quick Installation
 ------------------
 
-To install numbakit-ode, simply (*soon*):
+To install numbakit-ode, simply:
 
 .. code-block:: bash
 
@@ -83,7 +83,7 @@ and then simply enjoy it!
 Documentation
 -------------
 
-*Soon* Full documentation is available at http://numbakit-ode.readthedocs.org/
+Full documentation is available at http://numbakit-ode.readthedocs.org/
 
 
 Testing
