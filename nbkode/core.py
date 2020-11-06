@@ -131,6 +131,8 @@ class Solver(ABC, metaclass=MetaSolver):
                 f"LEN_HISTORY cannot be smaller than 1"
             )
         if cls.is_final_class():
+            if cls.GROUP not in cls.SOLVERS:
+                cls.SOLVERS[cls.GROUP] = []
             cls.SOLVERS[cls.GROUP].append(cls)
             cls._step = staticmethod(cls._step_builder(*cls._step_builder_args()))
 

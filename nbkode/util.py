@@ -12,16 +12,15 @@ import collections
 
 
 class CaseInsensitiveDict(collections.abc.MutableMapping):
-    """
-    A case-insensitive ``dict``-like object.
+    """A case-insensitive ``dict``-like object.
     Implements all methods and operations of
-    ``collections.MutableMapping`` as well as dict's ``copy``. Also
+    ``MutableMapping`` as well as dict's ``copy``. Also
     provides ``lower_items``.
     All keys are expected to be strings. The structure remembers the
     case of the last key to be set, and ``iter(instance)``,
     ``keys()``, ``items()``, ``iterkeys()``, and ``iteritems()``
     will contain case-sensitive keys. However, querying and contains
-    testing is case insensitive:
+    testing is case insensitive::
         cid = CaseInsensitiveDict()
         cid['Accept'] = 'application/json'
         cid['aCCEPT'] == 'application/json'  # True
@@ -33,11 +32,11 @@ class CaseInsensitiveDict(collections.abc.MutableMapping):
     operations are given keys that have equal ``.lower()``s, the
     behavior is undefined.
 
-    Adapted from https://github.com/psf/requests/blob/v1.2.3/requests/structures.py#L37
+    Adapted from: https://github.com/psf/requests/blob/master/requests/structures.py
     """
 
     def __init__(self, data=None, **kwargs):
-        self._store = dict()
+        self._store = collections.OrderedDict()
         if data is None:
             data = {}
         self.update(data, **kwargs)
@@ -48,8 +47,6 @@ class CaseInsensitiveDict(collections.abc.MutableMapping):
         self._store[key.lower()] = (key, value)
 
     def __getitem__(self, key):
-        if key.lower() not in self._store:
-            self.__setitem__(key, [])
         return self._store[key.lower()][1]
 
     def __delitem__(self, key):
@@ -66,7 +63,7 @@ class CaseInsensitiveDict(collections.abc.MutableMapping):
         return ((lowerkey, keyval[1]) for (lowerkey, keyval) in self._store.items())
 
     def __eq__(self, other):
-        if isinstance(other, collections.Mapping):
+        if isinstance(other, collections.abc.Mapping):
             other = CaseInsensitiveDict(other)
         else:
             return NotImplemented
@@ -78,4 +75,4 @@ class CaseInsensitiveDict(collections.abc.MutableMapping):
         return CaseInsensitiveDict(self._store.values())
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, dict(self.items()))
+        return str(dict(self.items()))
