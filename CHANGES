@@ -4,7 +4,9 @@ numbakit-ode Changelog
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Tidy up part of the public API.
+- Renamed some variables in internal methods for consistency.
+- Improved docs.
 
 
 0.1 (2020-11-05)

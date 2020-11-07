@@ -36,7 +36,7 @@ time points, with `1` as the initial value.
    >>> y0 = 1.
    >>> solver = nbkode.RungeKutta45(rhs, y0)
    >>> ts = np.linspace(0, 10, 100)
-   >>> ys = solver.run(ts)
+   >>> ts, ys = solver.run(ts)
 
 and that's it. You can plot this result:
 
@@ -47,7 +47,7 @@ A solver instance remember and therefore the following command will not
 recalculate the what has happened between 0 and 10.
 
    >>> ts2 = np.linspace(20, 40, 100)
-   >>> ys2 = solver.run(ts)
+   >>> ts, ys2 = solver.run(ts)
    >>> plt.plot(ts2, ys2)
 
 You can do this as many times as you want, as long as you move forward
@@ -107,7 +107,7 @@ the integrator.
    >>> p = -0.1
    >>> solver = nbkode.RungeKutta45(rhs, y0, params=p)
    >>> ts = np.linspace(0, 10, 100)
-   >>> ys = solver.run(ts)
+   >>> ts, ys = solver.run(ts)
 
 
 More than one equation
@@ -146,7 +146,7 @@ and it can be combined with the `params` argument,
    >>> p = [-0.1, -0.5]
    >>> solver = nbkode.RungeKutta45(rhs, y0, params=p)
    >>> ts = np.linspace(0, 10, 100)
-   >>> ys = solver.run(ts)
+   >>> ts, ys = solver.run(ts)
 
 
 Step by step
