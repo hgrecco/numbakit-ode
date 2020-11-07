@@ -50,12 +50,8 @@ class Solver(ABC, metaclass=MetaSolver):
         Current time.
     y : ndarray
         Current state.
-    t_prev : float
-        Last time
-    y_prev : ndarray
-        Last step
-    t_old : float
-        Previous time. None if no steps were made yet.
+    f : ndarray
+        last evaluation of the rhs.
     step_size : float
         Size of the last successful step. None if no steps were made yet.
     """
@@ -167,26 +163,28 @@ class Solver(ABC, metaclass=MetaSolver):
 
         Modifies in-place self.t, self.y, self.f
         """
-        self._step(t_bound, *self._steps_args(), *self._steps_extra_args())
+        self._step(t_bound, *self._step_args(), *self._step_extra_args())
 
     def interpolate(self, t):
         """Interpolate solution at t."""
         if not (self._ts[0] <= t <= self._ts[-1]):
             raise ValueError(f"Time {t} to interpolate outside range")
 
-        return self._interpolate(t, *self._steps_args(), *self._steps_extra_args())
+        return self._interpolate(t, *self._step_args(), *self._step_extra_args())
 
     def move_to(self, t: float) -> Tuple[np.ndarray, np.ndarray]:
         """Advance simulation upto t."""
         self._check_time(t)
-        self._move_to(t, self._step, *self._steps_args(), *self._steps_extra_args())
+        return self._move_to(
+            t, self._step, *self._step_args(), *self._step_extra_args()
+        )
 
     def nsteps(self, steps: int):
         """Advance simulation one time step.
 
         Modifies in-place self.t, self.y, self.f
         """
-        self._nsteps(steps, self._step, *self._steps_args(), *self._steps_extra_args())
+        self._nsteps(steps, self._step, *self._step_args(), *self._step_extra_args())
 
     def run(self, t: Union[Real, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
         """Run solver.
@@ -196,7 +194,7 @@ class Solver(ABC, metaclass=MetaSolver):
         if isinstance(t, Real):
             self._check_time(t)
             return self._run_free(
-                t, self._step, *self._steps_args(), *self._steps_extra_args()
+                t, self._step, *self._step_args(), *self._step_extra_args()
             )
         elif isinstance(t, Collection):
             t = np.asarray(t)
@@ -205,60 +203,61 @@ class Solver(ABC, metaclass=MetaSolver):
                 t,
                 self._step,
                 self._interpolate,
-                *self._steps_args(),
-                *self._steps_extra_args(),
+                *self._step_args(),
+                *self._step_extra_args(),
             )
 
+    @staticmethod
     @abstractmethod
-    def _step(t_bound, rhs, t, y, f, *extra_args):
+    def _step(t_bound, rhs, ts, ys, fs, *extra_args):
         """Numba-compiled."""
         raise NotImplementedError
 
-    def _steps_args(self):
+    def _step_args(self):
         return self.rhs, self._ts, self._ys, self._fs
 
-    def _steps_extra_args(self) -> tuple:
+    def _step_extra_args(self) -> tuple:
         """Arguments to be passed to _step after t_bound."""
         return tuple()
 
     @staticmethod
     @numba.njit()
-    def _interpolate(t_eval, rhs, t, y, f, *extra_args):
+    def _interpolate(t_eval, rhs, ts, ys, fs, *extra_args):
         """Interpolate solution at t_eval"""
-        y_out = np.empty(y[0].shape)
+        y_out = np.empty(ys[0].shape)
         for ndx in range(len(y_out)):
-            y_out[ndx] = np.interp(t_eval, t, y[:, ndx])
+            y_out[ndx] = np.interp(t_eval, ts, ys[:, ndx])
 
         return y_out
 
     @staticmethod
     @numba.njit
-    def _nsteps(steps, step, rhs, t, y, f, *extra_args):
+    def _nsteps(steps, step, rhs, ts, ys, fs, *extra_args):
         for _ in range(steps):
-            step(np.inf, rhs, t, y, f, *extra_args)
+            step(np.inf, rhs, ts, ys, fs, *extra_args)
 
     @staticmethod
     @numba.njit
-    def _move_to(t_end: float, step, rhs, t, y, f, *extra_args):
-        while t[-1] < t_end:
-            step(t_end, rhs, t, y, f, *extra_args)
-        return t[-1], y[-1]
+    def _move_to(t_end: float, step, rhs, ts, ys, fs, *extra_args):
+        while ts[-1] < t_end:
+            step(t_end, rhs, ts, ys, fs, *extra_args)
+        return ts[-1], ys[-1]
 
     @staticmethod
     @numba.njit
     def _run_free(
-        t_end: float, step, rhs, t, y, f, *extra_args
+        t_end: float, step, rhs, ts, ys, fs, *extra_args
     ) -> tuple[np.ndarray, np.ndarray]:
         """Run freely upto t and return (t, y) as arrays."""
-        t_out = [t[-1]]
-        y_out = [y[-1]]
+        t_out = [ts[-1]]
+        y_out = [ys[-1]]
 
-        while t[-1] < t_end:
-            step(t_end, rhs, t, y, f, *extra_args)
-            t_out.append(t[-1])
-            y_out.append(y[-1])
+        while ts[-1] < t_end:
+            step(t_end, rhs, ts, ys, fs, *extra_args)
+            t_out.append(ts[-1])
+            y_out.append(ys[-1])
 
-        out = np.empty((len(y_out), y.shape[1]))
+        out = np.empty((len(y_out), ys.shape[1]))
         for i, yi in enumerate(y_out):
             out[i] = yi
 
@@ -267,23 +266,17 @@ class Solver(ABC, metaclass=MetaSolver):
     @staticmethod
     @numba.njit
     def _run_eval(
-        t_eval: np.ndarray,
-        step,
-        interpolate,
-        rhs,
-        t,
-        y,
-        f,
+        t_eval: np.ndarray, step, interpolate, rhs, ts, ys, fs, *extra_args
     ) -> tuple[np.ndarray, np.ndarray]:
         """Run up to t, evaluating y at given t and return (t, y) as arrays."""
 
         t_bound = t_eval[-1]
-        y_eval = np.empty((t_eval.size, y.size))
+        y_eval = np.empty((t_eval.size, ys.shape[1]))
 
-        for i, ti in enumerate(t):
-            while t[-1] < ti:
-                step(t_bound, rhs, t, y, f)
-            y_eval[i] = interpolate(ti, rhs, t, y, f)
+        for i, ti in enumerate(ts):
+            while ts[-1] < ti:
+                step(t_bound, rhs, ts, ys, fs, *extra_args)
+            y_eval[i] = interpolate(ti, rhs, ts, ys, fs, *extra_args)
 
         return t_eval, y_eval
 

@@ -157,5 +157,5 @@ class VariableStepRungeKutta(Solver):
         self.h = np.atleast_1d(h)
         self.K = np.empty((self.n_stages + 1, self.y.size), dtype=float)
 
-    def _steps_extra_args(self):
+    def _step_extra_args(self):
         return self.h, self.K, self.rtol, self.atol, self.max_step

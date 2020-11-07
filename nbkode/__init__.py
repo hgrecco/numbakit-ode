@@ -25,6 +25,7 @@ from .adams_moulton import (
     AdamsMoulton5,
 )
 from .core import get_groups, get_solvers
+from .dop853 import DOP853
 from .euler import BackwardEuler, Euler, ForwardEuler
 from .runge_kutta import RungeKutta23, RungeKutta45
 
@@ -42,7 +43,7 @@ except Exception:  # pragma: no cover
     __version__ = "unknown"
 
 
-def test():
+def test():  # pragma: no cover
     """Run all tests.
 
     Returns

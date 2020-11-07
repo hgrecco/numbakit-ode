@@ -218,15 +218,15 @@ class _FixedStepBaseSolver(Solver):
 
     @staticmethod
     @numba.njit()
-    def _interpolate(t_eval, extra_args):
+    def _interpolate(t_eval, rhs, ts, ys, fs, *extra_args):
         """Interpolate solution at t_eval"""
-        rhs, t, y, f = extra_args
-        if not (t[0] <= t_eval <= t[-1]):
+
+        if not (ts[0] <= t_eval <= ts[-1]):
             raise ValueError("Time to interpolate outside range")
 
-        y_out = np.empty(y[0].shape)
+        y_out = np.empty(ys[0].shape)
         for ndx in range(len(y_out)):
-            y_out[ndx] = np.interp(t_eval, t, y[:, ndx])
+            y_out[ndx] = np.interp(t_eval, ts, ys[:, ndx])
 
         return y_out
 
@@ -261,7 +261,7 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
     ):
         super().__init__(rhs, t0, y0, params, h=h)
 
-    def _steps_extra_args(self):
+    def _step_extra_args(self):
         return (self._h,)
 
 
@@ -308,5 +308,5 @@ class BFixedStepBaseSolver(_FixedStepBaseSolver):
         self.rtol = rtol
         self.max_iter = max_iter
 
-    def _steps_extra_args(self):
+    def _step_extra_args(self):
         return self._h, self.rtol, self.atol, self.max_iter

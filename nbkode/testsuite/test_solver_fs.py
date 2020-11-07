@@ -16,7 +16,6 @@ import pytest
 
 import nbkode
 
-# TODO: implicit solvers for size > 1 are not working yet
 solvers_i = nbkode.get_solvers(implicit=True, fixed_step=True)
 solvers_e = nbkode.get_solvers(implicit=False, fixed_step=True)
 solvers = nbkode.get_solvers(fixed_step=True)
