@@ -137,7 +137,7 @@ def step_builder(A, B, C, E, error_exponent):
 class RungeKutta23(corevs.VariableStepRungeKutta):
     """Explicit Runge-Kutta method of order 3(2).
 
-    This uses the Bogacki-Shampine pair of formulas [1]_. The error is controlled
+    This uses the Bogacki-Shampine pair of formulas [#]_. The error is controlled
     assuming accuracy of the second-order method, but steps are taken using the
     third-order accurate formula (local extrapolation is done). A cubic Hermite
     polynomial is used for the dense output.
@@ -147,8 +147,8 @@ class RungeKutta23(corevs.VariableStepRungeKutta):
 
     References
     ----------
-    .. [1] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
-           Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
+    .. [#] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
+       Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
     """
 
     GROUP = "Runge-Kutta"
@@ -176,18 +176,18 @@ class RungeKutta23(corevs.VariableStepRungeKutta):
 class RungeKutta45(corevs.VariableStepRungeKutta):
     """Explicit Runge-Kutta method of order 5(4).
 
-    This uses the Dormand-Prince pair of formulas [1]_. The error is controlled
+    This uses the Dormand-Prince pair of formulas [#]_. The error is controlled
     assuming accuracy of the fourth-order method accuracy, but steps are taken
     using the fifth-order accurate formula (local extrapolation is done).
-    A quartic interpolation polynomial is used for the dense output [2]_.
+    A quartic interpolation polynomial is used for the dense output [#]_.
     Can be applied in the complex domain.
 
     References
     ----------
-    .. [1] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
+    .. [#] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
            formulae", Journal of Computational and Applied Mathematics, Vol. 6,
            No. 1, pp. 19-26, 1980.
-    .. [2] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
+    .. [#] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
            of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
     """
 

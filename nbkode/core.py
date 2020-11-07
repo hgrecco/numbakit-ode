@@ -292,6 +292,21 @@ def check(solver, implicit=None, fixed_step=None):
 
 
 def get_solvers(*groups, implicit=None, fixed_step=None):
+    """Get available solvers.
+
+    Parameters
+    ----------
+    groups : str
+        name of the group to filter
+    implicit : bool
+        if True, only implicit solvers will be returned.
+    fixed_step : bool
+        if True, only fixed step solvers will be returned.
+
+    Returns
+    -------
+    tuple(Solver)
+    """
     if not groups:
         groups = Solver.SOLVERS.keys()
     out = []
@@ -310,4 +325,5 @@ def get_solvers(*groups, implicit=None, fixed_step=None):
 
 
 def get_groups():
+    """Get group names."""
     return tuple(sorted(Solver.SOLVERS.keys()))

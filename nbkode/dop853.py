@@ -138,16 +138,16 @@ class DOP853(corevs.VariableStepRungeKutta):
     """Explicit Runge-Kutta method of order 8.
 
     This is a Python implementation of "DOP853" algorithm originally written
-    in Fortran [1]_, [2]_. Note that this is not a literate translation, but
+    in Fortran [#]_, [#]_. Note that this is not a literate translation, but
     the algorithmic core and coefficients are the same.
     Can be applied in the complex domain.
 
 
     References
     ----------
-    .. [1] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
+    .. [#] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
            Equations I: Nonstiff Problems", Sec. II.
-    .. [2] `Page with original Fortran code of DOP853
+    .. [#] `Page with original Fortran code of DOP853
             <http://www.unige.ch/~hairer/software.html>`_.
     """
 
