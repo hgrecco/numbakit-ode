@@ -38,7 +38,6 @@ def step_builder(A, B, C, E, error_exponent):
     E :
     error_exponent :
 
-
     Returns
     -------
     callable
@@ -81,6 +80,11 @@ def step_builder(A, B, C, E, error_exponent):
 
         ts, ts and fs are modified in place.
         h and K is modified in place.
+
+        Returns
+        -------
+        int
+            number of steps given (0 or 1)
         """
 
         t_cur = t[-1]
@@ -96,6 +100,9 @@ def step_builder(A, B, C, E, error_exponent):
 
             t_new = min(t_cur + _h, t_bound)
             _h = t_new - t_cur
+
+            if _h == 0:
+                return 0
 
             y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
 
@@ -130,6 +137,8 @@ def step_builder(A, B, C, E, error_exponent):
         y[-1] = y_new
 
         h[0] = _h
+
+        return 1
 
     return _step
 
