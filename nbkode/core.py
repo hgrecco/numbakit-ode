@@ -161,35 +161,103 @@ class Solver(ABC, metaclass=MetaSolver):
     def step(self, t_bound=np.inf):
         """Advance simulation one time step.
 
-        Modifies in-place self.t, self.y, self.f
-        """
-        self._step(t_bound, *self._step_args(), *self._step_extra_args())
+        Parameters
+        ----------
+        t_bound : float, optional (default np.inf)
+            The integration won’t continue beyond this value.
+            In fixed step methods, the integration stops just before t_bound.
+            In variable step methods, the integration stops at t_bound.
 
-    def interpolate(self, t):
-        """Interpolate solution at t."""
+        Returns
+        -------
+        int
+            number of steps given
+        """
+        return self._step(t_bound, *self._step_args(), *self._step_extra_args())
+
+    def nsteps(self, steps: int, t_bound=np.inf):
+        """Advance simulation multiple time step in a tight loop.
+
+        Compiled equivalent of::
+
+            cnt = 0
+            for _ in range(steps):
+                cnt += self.step(t_bound)
+            return cnt
+
+        Parameters
+        ----------
+        steps : int
+            Number of steps to
+        t_bound : float, optional (default np.inf)
+            The integration won’t continue beyond this value.
+            In fixed step methods, the integration stops just before t_bound.
+            In variable step methods, the integration stops at t_bound.
+
+        Returns
+        -------
+        int
+            number of steps given
+        """
+        return self._nsteps(
+            steps, t_bound, self._step, *self._step_args(), *self._step_extra_args()
+        )
+
+    def interpolate(self, t: float) -> float:
+        """Interpolate solution at t.
+
+        This only works for values within the recorded history of the solver.
+        of the solver instance
+
+        Parameters
+        ----------
+        t : float
+
+        Raises
+        ------
+        ValueError
+            if the time is outside the recorded history.
+        """
+
+        # TODO: make this work for array T
+
         if not (self._ts[0] <= t <= self._ts[-1]):
             raise ValueError(f"Time {t} to interpolate outside range")
 
         return self._interpolate(t, *self._step_args(), *self._step_extra_args())
 
-    def move_to(self, t: float) -> Tuple[np.ndarray, np.ndarray]:
-        """Advance simulation upto t."""
+    def move_to(self, t: float) -> Tuple[float, np.ndarray]:
+        """Advance simulation up to t.
+
+        Unlike `run`, this method does not output the intermediate steps.
+
+        Parameters
+        ----------
+        t : float
+
+        Returns
+        -------
+        float, np.ndarray
+            time, state
+        """
         self._check_time(t)
         return self._move_to(
             t, self._step, *self._step_args(), *self._step_extra_args()
         )
 
-    def nsteps(self, steps: int):
-        """Advance simulation one time step.
-
-        Modifies in-place self.t, self.y, self.f
-        """
-        self._nsteps(steps, self._step, *self._step_args(), *self._step_extra_args())
-
     def run(self, t: Union[Real, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
         """Run solver.
-        If t is a scalar, run freely up to t.
-        If t is an array-like, return solution evaluated at t.
+
+        Parameters
+        ----------
+        t : float or array-like
+            If t is a scalar, run freely up to t.
+            If t is an array-like, return solution evaluated at t.
+
+        Returns
+        -------
+        np.ndarray, np.ndarray
+            time vector, state vector
         """
         if isinstance(t, Real):
             self._check_time(t)
@@ -221,6 +289,17 @@ class Solver(ABC, metaclass=MetaSolver):
         return tuple()
 
     @staticmethod
+    @numba.njit
+    def _nsteps(steps, t_bound, step, rhs, ts, ys, fs, *extra_args):
+        cnt = 0
+        for _ in range(steps):
+            tmp = step(t_bound, rhs, ts, ys, fs, *extra_args)
+            if tmp == 0:
+                return cnt
+            cnt += tmp
+        return cnt
+
+    @staticmethod
     @numba.njit()
     def _interpolate(t_eval, rhs, ts, ys, fs, *extra_args):
         """Interpolate solution at t_eval"""
@@ -229,12 +308,6 @@ class Solver(ABC, metaclass=MetaSolver):
             y_out[ndx] = np.interp(t_eval, ts, ys[:, ndx])
 
         return y_out
-
-    @staticmethod
-    @numba.njit
-    def _nsteps(steps, step, rhs, ts, ys, fs, *extra_args):
-        for _ in range(steps):
-            step(np.inf, rhs, ts, ys, fs, *extra_args)
 
     @staticmethod
     @numba.njit
