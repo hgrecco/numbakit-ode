@@ -28,8 +28,10 @@ def f1(t, x, k):
 def test_f1_public_api(solver):
     # This is just running the public api, not checking correctness
     solver: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,))
-    solver.step()
-    solver.nsteps(5)
+    assert solver.step() == 1
+    assert solver.step(solver.t) == 0
+    assert solver.nsteps(5) == 5
+    assert solver.nsteps(5, solver.t) == 0
     assert isinstance(solver.t, float)
     assert solver.y.shape == y0_1.shape
     assert solver.f.shape == y0_1.shape
