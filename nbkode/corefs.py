@@ -197,6 +197,11 @@ class _FixedStepBaseSolver(Solver):
     ----------
     h : float
         Step size
+    first_stepper_cls : Solver or 'str' or None
+        - subclass of Solver.
+        - 'auto'
+        - str that will be used as getattr(nbkode, first_stepper)
+        - None
 
     See `Solver` for information about the other arguments.
     """
@@ -204,6 +209,8 @@ class _FixedStepBaseSolver(Solver):
     COEFS: np.ndarray
 
     FIXED_STEP = True
+
+    FIRST_STEPPER_CLS = None
 
     @classmethod
     def _step_builder_args(cls):
@@ -217,11 +224,37 @@ class _FixedStepBaseSolver(Solver):
         params: np.ndarray = None,
         *,
         h: float = 1,
+        first_stepper_cls=None,
     ):
         super().__init__(rhs, t0, y0, params)
 
         # TODO: CHECK VALID VALUES
         self._h = h
+
+        # Code to handle the first steps in multistep methods
+        # Some of these methods require to build up a history of states
+        # intergrated using different methods.
+        if first_stepper_cls == "auto":
+            first_stepper_cls = self.FIRST_STEPPER_CLS
+
+        if first_stepper_cls is not None:
+            if isinstance(first_stepper_cls, str):
+                import nbkode
+
+                first_stepper_cls = getattr(nbkode, first_stepper_cls)
+
+            if first_stepper_cls.FIXED_STEP:
+                # For fixed step solver we do N steps with the step size.
+                solver = first_stepper_cls(rhs, t0, y0, params, h=h)
+                for ndx in range(self.COEFS.size - 1):
+                    solver.step()
+                    self.push(solver.t, solver.y, solver.f)
+            else:
+                # For variable step solver we run N times until the corresponding time.
+                solver = first_stepper_cls(rhs, t0, y0, params)
+                for ndx in range(self.COEFS.size - 1):
+                    solver.run(ndx * h)
+                    self.push(solver.t, solver.y, solver.f)
 
     def __init_subclass__(cls, **kwargs):
         if hasattr(cls, "COEFS"):
@@ -247,6 +280,16 @@ class _FixedStepBaseSolver(Solver):
     @property
     def step_size(self):
         return self._h
+
+    def push(self, t_new, y_new, f_new):
+        self._ts[:-1] = self._ts[1:]
+        self._ts[-1] = t_new
+
+        self._ys[:-1] = self._ys[1:]
+        self._ys[-1] = y_new
+
+        self._fs[:-1] = self._fs[1:]
+        self._fs[-1] = f_new
 
 
 class FFixedStepBaseSolver(_FixedStepBaseSolver):
