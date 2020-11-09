@@ -313,7 +313,8 @@ class Solver(ABC, metaclass=MetaSolver):
     @numba.njit
     def _move_to(t_end: float, step, rhs, ts, ys, fs, *extra_args):
         while ts[-1] < t_end:
-            step(t_end, rhs, ts, ys, fs, *extra_args)
+            if not step(t_end, rhs, ts, ys, fs, *extra_args):
+                break
         return ts[-1], ys[-1]
 
     @staticmethod
@@ -326,7 +327,8 @@ class Solver(ABC, metaclass=MetaSolver):
         y_out = [ys[-1]]
 
         while ts[-1] < t_end:
-            step(t_end, rhs, ts, ys, fs, *extra_args)
+            if not step(t_end, rhs, ts, ys, fs, *extra_args):
+                break
             t_out.append(ts[-1])
             y_out.append(ys[-1])
 
@@ -348,7 +350,8 @@ class Solver(ABC, metaclass=MetaSolver):
 
         for i, ti in enumerate(ts):
             while ts[-1] < ti:
-                step(t_bound, rhs, ts, ys, fs, *extra_args)
+                if not step(t_bound, rhs, ts, ys, fs, *extra_args):
+                    break
             y_eval[i] = interpolate(ti, rhs, ts, ys, fs, *extra_args)
 
         return t_eval, y_eval
