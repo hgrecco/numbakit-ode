@@ -6,7 +6,8 @@ numbakit-ode Changelog
 
 - Tidy up part of the public API.
 - Renamed some variables in internal methods for consistency.
-- Improved docs.
+- Improved docstrings.
+- API to handle the first step in higher order fixed step methods.
 
 
 0.1 (2020-11-05)
