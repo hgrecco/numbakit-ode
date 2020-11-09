@@ -28,7 +28,7 @@ class _AdamsBashforth(FFixedStepBaseSolver):
 class AdamsBashforth1(_AdamsBashforth):
     """The Adams–Bashforth method with ONE is equivalent to Euler"""
 
-    COEFS = np.asarray([1.0, 0])
+    COEFS = 1.0
 
 
 class AdamsBashforth2(_AdamsBashforth):

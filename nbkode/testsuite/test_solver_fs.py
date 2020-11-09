@@ -66,3 +66,26 @@ def test_f2(solver):
     # TODO: This is a rather large tolerance.
     np.testing.assert_allclose(solver.y[0], np.exp(-0.01 * 10), rtol=0.15)
     np.testing.assert_allclose(solver.y[1], 2.0 * np.exp(-0.05 * 10), rtol=0.15)
+
+
+@pytest.mark.parametrize("solver", solvers)
+def test_first_stepper(solver):
+    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls=None)
+    assert sol.t == 0.0
+    sol.step()
+    assert sol.t == sol.step_size
+
+    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls="Euler")
+    assert sol.t == (sol.ORDER - 1) * sol.step_size
+
+    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls=nbkode.Euler)
+    assert sol.t == (sol.ORDER - 1) * sol.step_size
+
+    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls="RungeKutta45")
+    assert sol.t == (sol.ORDER - 1) * sol.step_size
+
+    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls=nbkode.RungeKutta45)
+    assert sol.t == (sol.ORDER - 1) * sol.step_size
+
+    sol2 = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls="auto")
+    assert sol.t == sol2.t

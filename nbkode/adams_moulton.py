@@ -29,7 +29,7 @@ class _AdamsMoulton(BFixedStepBaseSolver):
 class AdamsMoulton1(_AdamsMoulton):
     """The Adams–Bashforth method with ONE is equivalent to Euler"""
 
-    COEFS = np.asarray([1.0, 0])
+    COEFS = 1.0
 
 
 class AdamsMoulton2(_AdamsMoulton):

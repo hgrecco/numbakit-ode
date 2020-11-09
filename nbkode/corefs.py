@@ -208,9 +208,11 @@ class _FixedStepBaseSolver(Solver):
 
     COEFS: np.ndarray
 
+    ORDER: int
+
     FIXED_STEP = True
 
-    FIRST_STEPPER_CLS = None
+    FIRST_STEPPER_CLS = "RungeKutta45"
 
     @classmethod
     def _step_builder_args(cls):
@@ -233,7 +235,7 @@ class _FixedStepBaseSolver(Solver):
 
         # Code to handle the first steps in multistep methods
         # Some of these methods require to build up a history of states
-        # intergrated using different methods.
+        # integrated using different methods.
         if first_stepper_cls == "auto":
             first_stepper_cls = self.FIRST_STEPPER_CLS
 
@@ -246,21 +248,25 @@ class _FixedStepBaseSolver(Solver):
             if first_stepper_cls.FIXED_STEP:
                 # For fixed step solver we do N steps with the step size.
                 solver = first_stepper_cls(rhs, t0, y0, params, h=h)
-                for ndx in range(self.COEFS.size - 1):
+                for ndx in range(self.ORDER - 1):
                     solver.step()
                     self.push(solver.t, solver.y, solver.f)
             else:
-                # For variable step solver we run N times until the corresponding time.
+                # For variable step solver we run N times until h, 2h, 3h .. (ORDER - 1)h
                 solver = first_stepper_cls(rhs, t0, y0, params)
-                for ndx in range(self.COEFS.size - 1):
+                for ndx in range(1, self.ORDER):
                     solver.run(ndx * h)
                     self.push(solver.t, solver.y, solver.f)
 
     def __init_subclass__(cls, **kwargs):
         if hasattr(cls, "COEFS"):
-            cls.LEN_HISTORY = max(len(cls.COEFS), 2)
-            cls.COEFS = np.ascontiguousarray(cls.COEFS).flatten()
-            cls.COEFS.shape = (1, len(cls.COEFS))
+            cls.COEFS = np.ascontiguousarray(cls.COEFS, dtype=float).flatten()
+            cls.ORDER = cls.COEFS.size
+            if cls.ORDER == 1:
+                cls.COEFS = np.append(cls.COEFS, 0.0)
+            cls.COEFS.shape = (1, cls.COEFS.size)
+            cls.LEN_HISTORY = cls.COEFS.size
+
         super().__init_subclass__(**kwargs)
 
     @staticmethod
@@ -315,8 +321,9 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
         params: np.ndarray = None,
         *,
         h: float = 1,
+        first_stepper_cls=None,
     ):
-        super().__init__(rhs, t0, y0, params, h=h)
+        super().__init__(rhs, t0, y0, params, h=h, first_stepper_cls=first_stepper_cls)
 
     def _step_extra_args(self):
         return (self._h,)
@@ -358,8 +365,9 @@ class BFixedStepBaseSolver(_FixedStepBaseSolver):
         rtol=0.0,
         atol=1.48e-8,
         max_iter=50,
+        first_stepper_cls=None,
     ):
-        super().__init__(rhs, t0, y0, params, h=h)
+        super().__init__(rhs, t0, y0, params, h=h, first_stepper_cls=first_stepper_cls)
 
         self.atol = atol
         self.rtol = rtol

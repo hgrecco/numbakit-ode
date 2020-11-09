@@ -12,8 +12,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import numpy as np
-
 from .corefs import BFixedStepBaseSolver, FFixedStepBaseSolver
 
 
@@ -25,7 +23,7 @@ class ForwardEuler(FFixedStepBaseSolver):
 
     GROUP = "Euler"
 
-    COEFS = np.asarray([1.0, 0.0])
+    COEFS = 1.0
 
 
 Euler = ForwardEuler
@@ -38,4 +36,4 @@ class BackwardEuler(BFixedStepBaseSolver):
     """
 
     GROUP = "Euler"
-    COEFS = np.asarray([1.0, 0.0])
+    COEFS = 1.0
