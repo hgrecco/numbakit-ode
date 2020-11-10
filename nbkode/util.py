@@ -11,6 +11,14 @@
 import collections
 
 
+class classproperty:
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, obj, cls):
+        return self.fget(cls)
+
+
 class CaseInsensitiveDict(collections.abc.MutableMapping):
     """A case-insensitive ``dict``-like object.
     Implements all methods and operations of
