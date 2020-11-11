@@ -83,8 +83,8 @@ def step_builder(A, B, C, E, error_exponent):
 
         Returns
         -------
-        int
-            number of steps given (0 or 1)
+        bool
+            True if a step was done, False otherwise.
         """
 
         t_cur = t[-1]
@@ -100,7 +100,7 @@ def step_builder(A, B, C, E, error_exponent):
 
             t_new = t_cur + _h
             if t_new > t_bound:
-                return 0
+                return False
 
             y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
 
@@ -136,7 +136,7 @@ def step_builder(A, B, C, E, error_exponent):
 
         h[0] = _h
 
-        return 1
+        return True
 
     return _step
 

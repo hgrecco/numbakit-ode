@@ -65,13 +65,13 @@ def forward_step_builder(A):
 
         Returns
         -------
-        int
-            number of steps given (0 or 1)
+        bool
+            True if a step was done, False otherwise.
         """
 
         t_new = ts[-1] + h
         if t_new > t_bound:
-            return 0
+            return False
         f_new = rhs(ts[-1], ys[-1])
 
         fs[:-1] = fs[1:]
@@ -85,7 +85,7 @@ def forward_step_builder(A):
         ys[:-1] = ys[1:]
         ys[-1] = y_new
 
-        return 1
+        return True
 
     return _step
 
@@ -149,13 +149,13 @@ def backward_step_builder(A):
 
         Returns
         -------
-        int
-            number of steps given (0 or 1)
+        bool
+            True if a step was done, False otherwise.
         """
 
         t_new = ts[-1] + h
         if t_new > t_bound:
-            return 0
+            return False
 
         fs[:-1] = fs[1:]
 
@@ -185,7 +185,7 @@ def backward_step_builder(A):
         ys[:-1] = ys[1:]
         ys[-1] = y_new
 
-        return 1
+        return True
 
     return _step
 
