@@ -81,7 +81,7 @@ def define_sol(package, integrator):
     solver_cls = by_name[package][integrator]
 
     if package == "nbkode":
-        sol = solver_cls(func, 0.0, y0, args=(-0.01,))
+        sol = solver_cls(func, 0.0, y0, params=(-0.01,))
     else:
         sol = solver_cls(func, 0.0, y0, t_bound=10_000_000_000)
 
@@ -136,13 +136,14 @@ def setup_time_f1_run10k(package, integrator, other):
     define_func(package, True)
     define_sol(package, integrator)
     sol.step()
-    if hasattr(sol, "nsteps"):
-        sol.nsteps(1)
+    if package == "nbkode":
+        # warm up _nsteps
+        sol.step(n=2)
 
 
 def time_f1_run10k(package, integrator, other):
     if other == NumbaStepModes.INTERNAL_LOOP.name:
-        sol.nsteps(10_000)
+        sol.step(n=10_000)
     else:
         for n in range(10_000):
             sol.step()

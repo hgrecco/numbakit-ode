@@ -91,10 +91,9 @@ def step_builder(A, B, C, E5, E3, error_exponent):
             if _h < min_step:
                 raise RuntimeError("Required step is too small.")
 
-            t_new = min(t_cur + _h, t_bound)
-            _h = t_new - t_cur
+            t_new = t_cur + _h
 
-            if _h == 0:
+            if t_new > t_bound:
                 return 0
 
             y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)
@@ -190,11 +189,21 @@ class DOP853(corevs.VariableStepRungeKutta):
         y0: np.ndarray,
         params: np.ndarray = None,
         *,
+        t_bound=np.inf,
         max_step=np.inf,
         rtol=1e-3,
         atol=1e-6,
     ):
-        super().__init__(rhs, t0, y0, params, max_step=max_step, rtol=rtol, atol=atol)
+        super().__init__(
+            rhs,
+            t0,
+            y0,
+            params,
+            t_bound=t_bound,
+            max_step=max_step,
+            rtol=rtol,
+            atol=atol,
+        )
 
         self.K_extended = np.empty(
             (dop853_coefficients.N_STAGES_EXTENDED, y0.size), dtype=y0.dtype

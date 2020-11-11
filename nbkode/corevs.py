@@ -133,11 +133,12 @@ class VariableStepRungeKutta(Solver):
         y0: np.ndarray,
         params: np.ndarray = None,
         *,
+        t_bound=np.inf,
         rtol=1e-3,
         atol=1e-6,
         max_step=np.inf,
     ):
-        super().__init__(rhs, t0, y0, params)
+        super().__init__(rhs, t0, y0, params, t_bound=t_bound)
 
         self.max_step = validate_max_step(max_step)
         self.rtol, self.atol = validate_tol(rtol, atol, self.y.size)

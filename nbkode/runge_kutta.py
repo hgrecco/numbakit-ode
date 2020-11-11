@@ -98,10 +98,8 @@ def step_builder(A, B, C, E, error_exponent):
             if _h < min_step:
                 raise RuntimeError("Required step is too small.")
 
-            t_new = min(t_cur + _h, t_bound)
-            _h = t_new - t_cur
-
-            if _h == 0:
+            t_new = t_cur + _h
+            if t_new > t_bound:
                 return 0
 
             y_new, f_new = rk_step(rhs, t_cur, y_cur, f_cur, _h, A, B, C, K)

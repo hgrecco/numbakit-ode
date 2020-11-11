@@ -34,34 +34,20 @@ def f2(t, x, k):
 
 
 @pytest.mark.parametrize("solver", solvers)
-def test_f1_step(solver):
-    solver = solver(f1, 0.0, y0_1, params=(0.01,))
-    solver.step()
-    solver.run(1)
-
-
-@pytest.mark.parametrize("solver", solvers)
 def test_f1(solver):
 
     solver = solver(f1, 0.0, y0_1, params=(0.01,))
-    solver.run(10)
+    solver.skip(upto_t=10)
 
     # TODO: This is a rather large tolerance.
     np.testing.assert_allclose(solver.y, np.exp(-0.01 * 10), atol=0.1)
 
 
 @pytest.mark.parametrize("solver", solvers)
-def test_f2_step(solver):
-    solver = solver(f2, 0.0, y0_2, params=(0.01, 0.05))
-    solver.step()
-    solver.run(1)
-
-
-@pytest.mark.parametrize("solver", solvers)
 def test_f2(solver):
 
     solver = solver(f2, 0.0, y0_2, params=(0.01, 0.05))
-    solver.run(10)
+    solver.skip(upto_t=10)
 
     # TODO: This is a rather large tolerance.
     np.testing.assert_allclose(solver.y[0], np.exp(-0.01 * 10), rtol=0.15)

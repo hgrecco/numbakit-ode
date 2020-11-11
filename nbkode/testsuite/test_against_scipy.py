@@ -77,5 +77,5 @@ def test_exponential2(nbkode_cls, scipy_cls):
         assert nbkode_sol.t == scipy_sol.t, msg
         assert_equal(nbkode_sol.y, scipy_sol.y)
         assert_equal(nbkode_sol.f, scipy_sol.f)
-        assert nbkode_sol.h == scipy_sol.h_abs, msg
+        assert_allclose(nbkode_sol.h, scipy_sol.h_abs, err_msg=msg)
         assert_allclose(nbkode_sol.K, scipy_sol.K, err_msg=msg)

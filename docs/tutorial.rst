@@ -58,34 +58,45 @@ when `run` was called the second time.s
 It is important to consider that the chosen time points might not match the
 ones defined by the integration algorithm, nbkode interpolates to the values
 you have provided. This is usually what you need. However, if you want to
-integrate and get the steps without interpolation just call `run` using
-the last time time point as an argument (a number, not an iterable).
+integrate and get the steps without interpolation just can call `step`:
 
 .. doctest::
 
    >>> y0 = 1.
    >>> solver = nbkode.RungeKutta45(rhs, y0)
-   >>> ts, ys = solver.run(10)
+   >>> ts, ys = solver.step(n=10) # You can also use upto_t here to step until a given time.
 
 and and again. You can plot this result.
 
    >>> import matplotlib.pyplot as plt
    >>> plt.plot(t, y)
 
+
 Notice that the points are more sparse. They are also unevenly distributed
 because RungeKutta45 is a variable step integrator.
 
-Finally, you can use the `move_to` function if you want to calculate until
+Finally, you can use the `skip` function if you want to calculate until
 a specific time without storing the intermediate results
 
    >>> y0 = 1.
    >>> solver = nbkode.RungeKutta45(rhs, y0)
-   >>> t, y = solver.move_to(10)
+   >>> t, y = solver.skip(upto_t=10) # You can also use n here to skip a number of steps.
 
 
 At any time, you can find out the current time, variable and rhs.
 
     >>> print(solver.t, solver.y, solver.f)
+
+
+.. note::
+    `step` and `skip` are related functions as they integrate forward until
+    a certain condition is met. The main difference is that while `step`
+    returns the time and state arrays, `skip` does it without keeping and
+    returning the results and therefore is faster and memory efficient
+    when those values are not needed.
+    They both take the same keyword only arguments: `n` and `upto_t`.
+    The first indicates the number of steps to advance and the second
+    the integration time point that it will not go beyond.
 
 
 Parameters
@@ -147,23 +158,6 @@ and it can be combined with the `params` argument,
    >>> solver = nbkode.RungeKutta45(rhs, y0, params=p)
    >>> ts = np.linspace(0, 10, 100)
    >>> ts, ys = solver.run(ts)
-
-
-Step by step
-------------
-
-It is rare, but you might want to step yourself. There is an API for that:
-
-   >>> y0 = 1.
-   >>> solver = nbkode.RungeKutta45(rhs, y0)
-   >>> solver.step()
-   >>> print(solver.t, solver.y, solver.f)
-
-If you want to step 100 times, it is faster to call `nsteps` as it has a
-tighter, compiled loop.
-
-   >>> solver.nsteps(100)
-   >>> print(solver.t, solver.y, solver.f)
 
 
 

@@ -225,10 +225,11 @@ class _FixedStepBaseSolver(Solver):
         y0: np.ndarray,
         params: np.ndarray = None,
         *,
+        t_bound=np.inf,
         h: float = 1,
         first_stepper_cls=None,
     ):
-        super().__init__(rhs, t0, y0, params)
+        super().__init__(rhs, t0, y0, params, t_bound=t_bound)
 
         # TODO: CHECK VALID VALUES
         self._h = h
@@ -254,9 +255,10 @@ class _FixedStepBaseSolver(Solver):
             else:
                 # For variable step solver we run N times until h, 2h, 3h .. (ORDER - 1)h
                 solver = first_stepper_cls(rhs, t0, y0, params)
-                for ndx in range(1, self.ORDER):
-                    solver.run(ndx * h)
-                    self.push(solver.t, solver.y, solver.f)
+                if self.ORDER > 1:
+                    ts, ys = solver.run(np.arange(1, self.ORDER) * h)
+                    for ndx in range(len(ts)):
+                        self.push(ts[ndx], ys[0], self.rhs(ts[ndx], ys[ndx]))
 
     def __init_subclass__(cls, **kwargs):
         if hasattr(cls, "COEFS"):
@@ -320,10 +322,19 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
         y0: np.ndarray,
         params: np.ndarray = None,
         *,
+        t_bound=np.inf,
         h: float = 1,
         first_stepper_cls=None,
     ):
-        super().__init__(rhs, t0, y0, params, h=h, first_stepper_cls=first_stepper_cls)
+        super().__init__(
+            rhs,
+            t0,
+            y0,
+            params,
+            t_bound=t_bound,
+            h=h,
+            first_stepper_cls=first_stepper_cls,
+        )
 
     def _step_extra_args(self):
         return (self._h,)
@@ -361,13 +372,22 @@ class BFixedStepBaseSolver(_FixedStepBaseSolver):
         y0: np.ndarray,
         params: np.ndarray = None,
         *,
+        t_bound=np.inf,
         h: float = 1,
         rtol=0.0,
         atol=1.48e-8,
         max_iter=50,
         first_stepper_cls=None,
     ):
-        super().__init__(rhs, t0, y0, params, h=h, first_stepper_cls=first_stepper_cls)
+        super().__init__(
+            rhs,
+            t0,
+            y0,
+            params,
+            t_bound=t_bound,
+            h=h,
+            first_stepper_cls=first_stepper_cls,
+        )
 
         self.atol = atol
         self.rtol = rtol

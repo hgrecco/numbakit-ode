@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 from abc import ABC, ABCMeta, abstractmethod
-from collections.abc import Collection
 from numbers import Real
 from typing import Callable, Tuple, Union
 
@@ -43,6 +42,12 @@ class Solver(ABC, metaclass=MetaSolver):
         Initial state.
     params : array_like
         Extra arguments to be passed to the fun as ``fun(t, y, params)``
+    t_bound : float, optional (default np.inf)
+        The integration won’t continue beyond this value. Use it only to stop
+        the integrator when the solution or ecuation has problems after this point.
+        To obtain the solution at a given timepoint use `run`.
+        In fixed step methods, the integration stops just before t_bound.
+        In variable step methods, the integration stops at t_bound.
 
     Attributes
     ----------
@@ -90,9 +95,14 @@ class Solver(ABC, metaclass=MetaSolver):
     _step_builder: Callable
 
     def __init__(
-        self, rhs: Callable, t0: float, y0: np.ndarray, params: np.ndarray = None
+        self,
+        rhs: Callable,
+        t0: float,
+        y0: np.ndarray,
+        params: np.ndarray = None,
+        t_bound=np.inf,
     ):
-
+        self.t_bound = t_bound
         y0 = np.ascontiguousarray(y0)
         if params is not None:
             params = np.ascontiguousarray(params)
@@ -157,51 +167,158 @@ class Solver(ABC, metaclass=MetaSolver):
     def _check_time(self, t):
         if t < self.t:
             raise ValueError(f"Time {t} is smaller than current solver time t={self.t}")
+        if t > self.t_bound:
+            raise ValueError(
+                f"Time {t} is smaller than solver bound time t_bound={self.t_bound}"
+            )
 
-    def step(self, t_bound=np.inf):
-        """Advance simulation one time step.
+    def step(self, *, n: int = None, upto_t: float = None) -> Tuple[np.array, np.array]:
+        """Advance simulation `n` steps or until the next timepoint will go beyond `upto_t`.
 
-        Parameters
-        ----------
-        t_bound : float, optional (default np.inf)
-            The integration won’t continue beyond this value.
-            In fixed step methods, the integration stops just before t_bound.
-            In variable step methods, the integration stops at t_bound.
+        It records and output all intermediate steps.
 
-        Returns
-        -------
-        int
-            number of steps given
-        """
-        return self._step(t_bound, *self._step_args(), *self._step_extra_args())
-
-    def nsteps(self, steps: int, t_bound=np.inf):
-        """Advance simulation multiple time step in a tight loop.
-
-        Compiled equivalent of::
-
-            cnt = 0
-            for _ in range(steps):
-                cnt += self.step(t_bound)
-            return cnt
+        - `step()` is equivalent to `step(n=1)`
+        - `step(n=<number>)` is equivalent to `step(n=<number>, upto_t=np.inf)`
+        - `step(upto_t=<number>)` is similar to `step(n=`np.inf`, upto_t=<number>)`
 
         Parameters
         ----------
-        steps : int
-            Number of steps to
-        t_bound : float, optional (default np.inf)
-            The integration won’t continue beyond this value.
-            In fixed step methods, the integration stops just before t_bound.
-            In variable step methods, the integration stops at t_bound.
+        n : int, optional
+            Number of steps.
+        upto_t : float, optional
 
         Returns
         -------
-        int
-            number of steps given
+        np.ndarray, np.ndarray
+            time vector, state array
+
+        Raises
+        ------
+        ValueError
+            One of the timepoints provided is outside the valid range.
+        RuntimeError
+            The integrator reached `t_bound`.
         """
-        return self._nsteps(
-            steps, t_bound, self._step, *self._step_args(), *self._step_extra_args()
+
+        if n is None and upto_t is None:
+            # No parameters, make one step.
+            if self._step(self.t_bound, *self._step_args(), *self._step_extra_args()):
+                return np.atleast_1d(self.t), self.y
+        elif upto_t is None:
+            # Only n is given, make n steps. If t_bound is reached, raise an exception.
+            ts, ys, scon = self._nsteps(
+                n,
+                self.t_bound,
+                self._step,
+                *self._step_args(),
+                *self._step_extra_args(),
+            )
+            if scon:
+                raise RuntimeError("Integrator reached t_bound.")
+            return ts, ys
+        elif n is None:
+            # Only upto_t is given, move until that value.
+            # t_bound will not be reached a it due to validation in _check_time
+            self._check_time(upto_t)
+            ts, ys, scon = self._steps(
+                upto_t, self._step, *self._step_args(), *self._step_extra_args()
+            )
+            return ts, ys
+        else:
+            # Both parameters are given, move until either condition is reached.
+            # t_bound will not be reached a it due to validation in _check_time
+            self._check_time(upto_t)
+            ts, ys, scon = self._nsteps(
+                n, upto_t, self._step, *self._step_args(), *self._step_extra_args()
+            )
+            return ts, ys
+
+    def skip(self, *, n: int = None, upto_t: float = None) -> None:
+        """Advance simulation `n` steps or until the next timepoint will go beyond `upto_t`.
+
+        Unlike `step` or `run`, this method does not output the time and state.
+
+        - `skip()` is equivalent to `skip(n=1)`
+        - `skip(n=<number>)` is equivalent to `skip(n=<number>, upto_t=np.inf)`
+        - `skip(upto_t=<number>)` is similar to `skip(n=`np.inf`, upto_t=<number>)`
+
+        Parameters
+        ----------
+        n : int, optional
+            Number of steps.
+        upto_t : float, optional
+            Time to reach.
+
+        Raises
+        ------
+        ValueError
+            One of the timepoints provided is outside the valid range.
+        RuntimeError
+            The integrator reached `t_bound`.
+        """
+        if n is None and upto_t is None:
+            # No parameters, make one step.
+            self._nskip(
+                1,
+                self.t_bound,
+                self._step,
+                *self._step_args(),
+                *self._step_extra_args(),
+            )
+        elif upto_t is None:
+            # Only n is given, make n steps. If t_bound is reached, raise an exception.
+            if self._nskip(
+                n,
+                self.t_bound,
+                self._step,
+                *self._step_args(),
+                *self._step_extra_args(),
+            ):
+                raise RuntimeError("Integrator reached t_bound.")
+        elif n is None:
+            # Only upto_t is given, move until that value.
+            # t_bound will not be reached a it due to validation in _check_time
+            self._check_time(upto_t)
+            self._skip(upto_t, self._step, *self._step_args(), *self._step_extra_args())
+        else:
+            # Both parameters are given, move until either condition is reached.
+            # t_bound will not be reached a it due to validation in _check_time
+            self._check_time(upto_t)
+            self._nskip(
+                n, upto_t, self._step, *self._step_args(), *self._step_extra_args()
+            )
+
+    def run(self, t: Union[Real, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+        """Integrates the ODE interpolating at each of the timepoints `t`.
+
+        Parameters
+        ----------
+        t : float or array-like
+
+        Returns
+        -------
+        np.ndarray, np.ndarray
+            time vector, state vector
+
+        Raises
+        ------
+        ValueError
+            One of the timepoints provided is outside the valid range.
+        """
+
+        t = np.atleast_1d(t)
+        self._check_time(np.min(t))
+        self._check_time(np.max(t))
+        # t_bound will not be reached a it due to validation in _check_time
+        ts, ys, scon = self._run_eval(
+            self.t_bound,
+            t,
+            self._step,
+            self._interpolate,
+            *self._step_args(),
+            *self._step_extra_args(),
         )
+        return ts, ys
 
     def interpolate(self, t: float) -> float:
         """Interpolate solution at t.
@@ -226,61 +343,6 @@ class Solver(ABC, metaclass=MetaSolver):
 
         return self._interpolate(t, *self._step_args(), *self._step_extra_args())
 
-    def move_to(self, t: float) -> Tuple[float, np.ndarray]:
-        """Advance simulation up to t.
-
-        Unlike `run`, this method does not output the intermediate steps.
-
-        Parameters
-        ----------
-        t : float
-
-        Returns
-        -------
-        float, np.ndarray
-            time, state
-        """
-        self._check_time(t)
-        return self._move_to(
-            t, self._step, *self._step_args(), *self._step_extra_args()
-        )
-
-    def run(self, t: Union[Real, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
-        """Run solver.
-
-        Parameters
-        ----------
-        t : float or array-like
-            If t is a scalar, run freely up to t.
-            If t is an array-like, return solution evaluated at t.
-
-        Returns
-        -------
-        np.ndarray, np.ndarray
-            time vector, state vector
-        """
-        if isinstance(t, Real):
-            self._check_time(t)
-            return self._run_free(
-                t, self._step, *self._step_args(), *self._step_extra_args()
-            )
-        elif isinstance(t, Collection):
-            t = np.asarray(t)
-            self._check_time(t[0])
-            return self._run_eval(
-                t,
-                self._step,
-                self._interpolate,
-                *self._step_args(),
-                *self._step_extra_args(),
-            )
-
-    @staticmethod
-    @abstractmethod
-    def _step(t_bound, rhs, ts, ys, fs, *extra_args):
-        """Numba-compiled."""
-        raise NotImplementedError
-
     def _step_args(self):
         return self.rhs, self._ts, self._ys, self._fs
 
@@ -289,15 +351,105 @@ class Solver(ABC, metaclass=MetaSolver):
         return tuple()
 
     @staticmethod
+    @abstractmethod
+    def _step(t_bound, rhs, ts, ys, fs, *extra_args) -> int:
+        """Perform one integration step."""
+        raise NotImplementedError
+
+    @staticmethod
     @numba.njit
-    def _nsteps(steps, t_bound, step, rhs, ts, ys, fs, *extra_args):
-        cnt = 0
-        for _ in range(steps):
-            tmp = step(t_bound, rhs, ts, ys, fs, *extra_args)
-            if tmp == 0:
-                return cnt
-            cnt += tmp
-        return cnt
+    def _steps(t_end, step, rhs, ts, ys, fs, *extra_args):
+        """Step forward until:
+            - the next step goes beyond `t_end`
+
+        The stop condition is in the output to unify the API with
+        `nsteps`
+
+        Returns
+        -------
+        np.ndarray, np.ndarray, bool
+            time vector, state array, stop condition (always True)
+        """
+        t_out = []
+        y_out = []
+
+        while step(t_end, rhs, ts, ys, fs, *extra_args):
+            t_out.append(ts[-1])
+            y_out.append(np.copy(ys[-1]))
+
+        out = np.empty((len(y_out), ys.shape[1]))
+        for ndx, yi in enumerate(y_out):
+            out[ndx] = yi
+
+        return np.array(t_out), out, True
+
+    @staticmethod
+    @numba.njit
+    def _nsteps(n_steps, t_end, step, rhs, ts, ys, fs, *extra_args):
+        """Step forward until:
+            - the next step goes beyond `t_end`
+            - `n_steps` steps are done.
+
+        Returns
+        -------
+        np.ndarray, np.ndarray, bool
+            time vector, state array, stop condition
+
+        Stop condition
+            True if the integrator stopped due to the time condition.
+            False, otherwise (it was able to run all all steps).
+        """
+
+        t_out = np.empty((n_steps,))
+        y_out = np.empty((n_steps, ys.shape[-1]))
+
+        for ndx in range(n_steps):
+
+            if not step(t_end, rhs, ts, ys, fs, *extra_args):
+                return t_out[:ndx], y_out[:ndx], True
+
+            t_out[ndx] = ts[-1]
+            y_out[ndx] = ys[-1]
+
+        return t_out, y_out, False
+
+    @staticmethod
+    @numba.njit
+    def _skip(t_end, step, rhs, ts, ys, fs, *extra_args) -> bool:
+        """Perform all steps required, stopping just before going beyond t_end.
+
+        The stop condition is in the output to unify the API with `nsteps`
+
+        Returns
+        -------
+        bool
+            stop_condition (always True)
+        """
+
+        while step(t_end, rhs, ts, ys, fs, *extra_args):
+            pass
+        return True
+
+    @staticmethod
+    @numba.njit
+    def _nskip(n_steps, t_end, step, rhs, ts, ys, fs, *extra_args) -> bool:
+        """Step forward until:
+            - the next step goes beyond `t_end`
+            - `n_steps` steps are done.
+
+        Returns
+        -------
+        np.ndarray, np.ndarray, bool
+            time vector, state array, stop condition
+
+        Stop condition
+            True if the integrator stopped due to the time condition.
+            False, otherwise (it was able to run all all steps).
+        """
+        for _ in range(n_steps):
+            if not step(t_end, rhs, ts, ys, fs, *extra_args):
+                return True
+        return False
 
     @staticmethod
     @numba.njit()
@@ -311,50 +463,28 @@ class Solver(ABC, metaclass=MetaSolver):
 
     @staticmethod
     @numba.njit
-    def _move_to(t_end: float, step, rhs, ts, ys, fs, *extra_args):
-        while ts[-1] < t_end:
-            if not step(t_end, rhs, ts, ys, fs, *extra_args):
-                break
-        return ts[-1], ys[-1]
-
-    @staticmethod
-    @numba.njit
-    def _run_free(
-        t_end: float, step, rhs, ts, ys, fs, *extra_args
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """Run freely upto t and return (t, y) as arrays."""
-        t_out = [ts[-1]]
-        y_out = [ys[-1]]
-
-        while ts[-1] < t_end:
-            if not step(t_end, rhs, ts, ys, fs, *extra_args):
-                break
-            t_out.append(ts[-1])
-            y_out.append(ys[-1])
-
-        out = np.empty((len(y_out), ys.shape[1]))
-        for i, yi in enumerate(y_out):
-            out[i] = yi
-
-        return np.array(t_out), out
-
-    @staticmethod
-    @numba.njit
     def _run_eval(
-        t_eval: np.ndarray, step, interpolate, rhs, ts, ys, fs, *extra_args
-    ) -> tuple[np.ndarray, np.ndarray]:
+        t_bound: float,
+        t_eval: np.ndarray,
+        step,
+        interpolate,
+        rhs,
+        ts,
+        ys,
+        fs,
+        *extra_args,
+    ) -> tuple[np.ndarray, np.ndarray, bool]:
         """Run up to t, evaluating y at given t and return (t, y) as arrays."""
 
-        t_bound = t_eval[-1]
-        y_eval = np.empty((t_eval.size, ys.shape[1]))
+        y_out = np.empty((t_eval.size, ys.shape[1]))
 
-        for i, ti in enumerate(ts):
+        for ndx, ti in enumerate(t_eval):
             while ts[-1] < ti:
                 if not step(t_bound, rhs, ts, ys, fs, *extra_args):
-                    break
-            y_eval[i] = interpolate(ti, rhs, ts, ys, fs, *extra_args)
+                    return t_eval[:ndx], y_out[:ndx], True
+            y_out[ndx] = interpolate(ti, rhs, ts, ys, fs, *extra_args)
 
-        return t_eval, y_eval
+        return t_eval, y_out, False
 
 
 def check(solver, implicit=None, fixed_step=None):
