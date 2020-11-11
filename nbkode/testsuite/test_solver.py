@@ -10,6 +10,7 @@
 
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 
 import nbkode
 
@@ -35,26 +36,26 @@ def test_f1_public_api(solver):
     ########
     sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,))
     t, y = sol.step()
-    assert np.allclose(t, np.atleast_1d(sol.t))
-    assert np.allclose(t, ts[0])
-    assert np.allclose(y, np.atleast_1d(sol.y))
+    assert_allclose(t, np.atleast_1d(sol.t))
+    assert_allclose(t, ts[0])
+    assert_allclose(y, np.atleast_1d(sol.y))
     assert isinstance(sol.t, float)
     assert sol.y.shape == y0_1.shape
     assert sol.f.shape == y0_1.shape
 
     t, y = sol.step(n=2)
-    assert np.allclose(t, ts[1:3])
-    assert np.allclose(y, ys[1:3])
+    assert_allclose(t, ts[1:3])
+    assert_allclose(y, ys[1:3])
 
     t, y = sol.step(upto_t=ts[5])
     assert len(t) == 3
-    assert np.allclose(t[-2:], ts[4:6])
-    assert np.allclose(y[-2:], ys[4:6])
+    assert_allclose(t[-2:], ts[4:6])
+    assert_allclose(y[-2:], ys[4:6])
 
     t, y = sol.step(n=5, upto_t=ts[7])
     assert len(t) == 2
-    assert np.allclose(t[-2:], ts[6:8])
-    assert np.allclose(y[-2:], ys[6:8])
+    assert_allclose(t[-2:], ts[6:8])
+    assert_allclose(y[-2:], ys[6:8])
 
     t, y = sol.step(n=1, upto_t=ts[-1])
     assert len(t) == 1
@@ -104,5 +105,5 @@ def test_f1_public_api(solver):
     sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,))
     tvec = np.linspace(0, 10, 20)
     t, y = sol.run(tvec)
-    assert np.allclose(tvec, t)
+    assert_allclose(tvec, t)
     assert y.shape == (len(t),) + y0_1.shape

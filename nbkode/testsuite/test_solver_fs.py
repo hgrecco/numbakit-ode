@@ -13,6 +13,7 @@
 
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 
 import nbkode
 
@@ -40,7 +41,7 @@ def test_f1(solver):
     solver.skip(upto_t=10)
 
     # TODO: This is a rather large tolerance.
-    np.testing.assert_allclose(solver.y, np.exp(-0.01 * 10), atol=0.1)
+    assert_allclose(solver.y, np.exp(-0.01 * 10), atol=0.1)
 
 
 @pytest.mark.parametrize("solver", solvers)
@@ -50,8 +51,8 @@ def test_f2(solver):
     solver.skip(upto_t=10)
 
     # TODO: This is a rather large tolerance.
-    np.testing.assert_allclose(solver.y[0], np.exp(-0.01 * 10), rtol=0.15)
-    np.testing.assert_allclose(solver.y[1], 2.0 * np.exp(-0.05 * 10), rtol=0.15)
+    assert_allclose(solver.y[0], np.exp(-0.01 * 10), rtol=0.15)
+    assert_allclose(solver.y[1], 2.0 * np.exp(-0.05 * 10), rtol=0.15)
 
 
 @pytest.mark.parametrize("solver", solvers)
