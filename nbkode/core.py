@@ -165,11 +165,9 @@ class Solver(ABC, metaclass=MetaSolver):
         return self._fs[-1]
 
     def _check_time(self, t):
-        if t < self.t:
-            raise ValueError(f"Time {t} is smaller than current solver time t={self.t}")
         if t > self.t_bound:
             raise ValueError(
-                f"Time {t} is smaller than solver bound time t_bound={self.t_bound}"
+                f"Time {t} is larger than solver bound time t_bound={self.t_bound}"
             )
 
     def step(self, *, n: int = None, upto_t: float = None) -> Tuple[np.array, np.array]:
@@ -180,6 +178,8 @@ class Solver(ABC, metaclass=MetaSolver):
         - `step()` is equivalent to `step(n=1)`
         - `step(n=<number>)` is equivalent to `step(n=<number>, upto_t=np.inf)`
         - `step(upto_t=<number>)` is similar to `step(n=`np.inf`, upto_t=<number>)`
+
+        If `upto_t < self.t`, returns empty arrays for time and state.
 
         Parameters
         ----------
@@ -199,6 +199,8 @@ class Solver(ABC, metaclass=MetaSolver):
         RuntimeError
             The integrator reached `t_bound`.
         """
+        if upto_t is not None and upto_t < self.t:
+            return np.asarray([]), np.asarray([])
 
         if n is None and upto_t is None:
             # No parameters, make one step.
@@ -242,6 +244,8 @@ class Solver(ABC, metaclass=MetaSolver):
         - `skip(n=<number>)` is equivalent to `skip(n=<number>, upto_t=np.inf)`
         - `skip(upto_t=<number>)` is similar to `skip(n=`np.inf`, upto_t=<number>)`
 
+        If `upto_t < self.t`, does nothing.
+
         Parameters
         ----------
         n : int, optional
@@ -256,6 +260,9 @@ class Solver(ABC, metaclass=MetaSolver):
         RuntimeError
             The integrator reached `t_bound`.
         """
+        if upto_t is not None and upto_t < self.t:
+            return
+
         if n is None and upto_t is None:
             # No parameters, make one step.
             self._nskip(
@@ -305,20 +312,50 @@ class Solver(ABC, metaclass=MetaSolver):
         ValueError
             One of the timepoints provided is outside the valid range.
         """
-
         t = np.atleast_1d(t)
-        self._check_time(np.min(t))
+
+        is_t_sorted = t.size == 1 or np.all(t[:-1] <= t[1:])
+
+        if not is_t_sorted:
+            ndx = np.argsort(t)
+            t = t[ndx]
+
+        if t[0] < self._ts[0]:
+            raise ValueError(
+                f"Cannot interpolate at t={t[0]} as it is smaller "
+                f"than the current smallest value in history ({self._ts[0]})"
+            )
+
         self._check_time(np.max(t))
+
+        to_interpolate = t <= self._ts[-1]
+        is_to_interpolate = np.any(to_interpolate)
+        if is_to_interpolate:
+            t_old = t[to_interpolate]
+            y_old = np.asarray([self.interpolate(_t) for _t in t_old])
+            t_to_run = t[np.logical_not(to_interpolate)]
+        else:
+            t_to_run = t
+
         # t_bound will not be reached a it due to validation in _check_time
         ts, ys, scon = self._run_eval(
             self.t_bound,
-            t,
+            t_to_run,
             self._step,
             self._interpolate,
             *self._step_args(),
             *self._step_extra_args(),
         )
-        return ts, ys
+
+        if is_to_interpolate:
+            ts = np.concatenate((t_old, ts))
+            ys = np.concatenate((y_old, ys))
+
+        if is_t_sorted:
+            return ts, ys
+
+        ondx = np.argsort(ndx)
+        return ts[ondx], ys[ondx]
 
     def interpolate(self, t: float) -> float:
         """Interpolate solution at t.

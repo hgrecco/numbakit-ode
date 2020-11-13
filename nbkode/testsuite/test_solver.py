@@ -10,7 +10,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 import nbkode
 
@@ -102,8 +102,26 @@ def test_f1_public_api(solver):
     with pytest.raises(RuntimeError):
         sol.skip(n=2)
 
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,))
+    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000)
+    trev_ = np.linspace(0, 10, 20)[::-1]
+    trev, yrev = sol.run(trev_)
+    assert_allclose(trev_, trev)
+    assert yrev.shape == (len(trev_),) + y0_1.shape
+
+    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000)
     tvec = np.linspace(0, 10, 20)
     t, y = sol.run(tvec)
-    assert_allclose(tvec, t)
-    assert y.shape == (len(t),) + y0_1.shape
+    assert_equal(t, trev[::-1])
+    assert_equal(y, yrev[::-1])
+
+    tvec = [tvec[-2], 0.5 * (tvec[-2] + tvec[-1]), tvec[-1], tvec[-1] + 1, tvec[-1] + 2]
+    t3, y3 = sol.run(tvec)
+    assert_allclose(tvec, t3)
+    assert_allclose(y[-2], y3[0])
+    assert_allclose(y[-1], y3[2])
+
+    with pytest.raises(ValueError):
+        sol.run(0)
+
+    with pytest.raises(ValueError):
+        sol.run(10_000_000 + 1)
