@@ -4,7 +4,7 @@ numbakit-ode Changelog
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Improved public API: skip / step / run
 
 
 0.2 (2020-11-08)
