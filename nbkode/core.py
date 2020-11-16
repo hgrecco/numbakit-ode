@@ -18,7 +18,7 @@ from typing import Callable, Tuple, Union
 
 import numpy as np
 
-from .nbcompat import numba
+from .nbcompat import is_jitted, numba
 from .util import CaseInsensitiveDict
 
 
@@ -109,8 +109,9 @@ class Solver(ABC, metaclass=MetaSolver):
 
         self.user_rhs = rhs
 
-        # TODO: is therse something more robust, such as a numba function
-        if not hasattr(rhs, "inspect_llvm"):
+        # TODO: check if it is jitted or njitted. Not sure if this is possible
+        # if it has not been executed.
+        if not is_jitted(rhs):
             rhs = numba.njit()(rhs)
 
         # TODO: A better way to make it partial?
