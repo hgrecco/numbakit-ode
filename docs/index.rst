@@ -23,12 +23,12 @@ It is extremely easy and natural to use:
 .. code-block:: python
 
     >>> import nbkode
-    >>> def func(t, y, k):
-    ...     return -k * y
+    >>> def func(t, y):
+    ...     return -0.1. * y
     >>> t0 = 0.
     >>> y0 = 1.
-    >>> solver = nbkode.Euler(func, t0, y0, args=(1, ))
-    >>> solver.run(10)
+    >>> solver = nbkode.Euler(func, t0, y0)
+    >>> ts, ys = solver.run([0., 5., 10.])
 
 You can get a list of all solvers:
 
