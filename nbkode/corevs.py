@@ -88,7 +88,7 @@ def rk_step(rhs, t, y, f, h, A, B, C, K):
     return y_new, f_new
 
 
-class VariableStepRungeKutta(Solver):
+class VariableStepRungeKutta(Solver, abstract=True):
     """Base class for explicit Runge-Kutta methods.
 
     Parameters

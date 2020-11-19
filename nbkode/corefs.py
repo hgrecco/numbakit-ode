@@ -190,7 +190,7 @@ def backward_step_builder(A):
     return _step
 
 
-class _FixedStepBaseSolver(Solver):
+class FixedStepBaseSolver(Solver, abstract=True):
     """Forward fixed step solver.
 
     Parameters
@@ -300,7 +300,7 @@ class _FixedStepBaseSolver(Solver):
         self._fs[-1] = f_new
 
 
-class FFixedStepBaseSolver(_FixedStepBaseSolver):
+class FFixedStepBaseSolver(FixedStepBaseSolver, abstract=True):
     """Forward fixed step solver.
 
     Parameters
@@ -340,7 +340,7 @@ class FFixedStepBaseSolver(_FixedStepBaseSolver):
         return (self._h,)
 
 
-class BFixedStepBaseSolver(_FixedStepBaseSolver):
+class BFixedStepBaseSolver(FixedStepBaseSolver, abstract=True):
     """Backward fixed step solver.
 
     Parameters

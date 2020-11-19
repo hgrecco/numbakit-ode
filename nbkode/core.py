@@ -121,14 +121,20 @@ class Solver(ABC, metaclass=MetaSolver):
         y0 = np.array(y0, dtype=float, ndmin=1)
         self.cache = AlignedBuffer(self.LEN_HISTORY, t0, y0, self.rhs(t0, y0))
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, abstract=False, **kwargs):
+        """Initialize Solver subclass by building step methods.
+
+        If abstract is True, the class represents a family/group of methods.
+        If abstract is False, builds cls._fixed_step and cls._step, and adds
+        the corresponding solver to the SOLVERS dictionary.
+        """
         super().__init_subclass__(**kwargs)
         if cls.LEN_HISTORY and cls.LEN_HISTORY < 1:
             raise ValueError(
                 f"While defining {cls.__name__}, "
                 f"LEN_HISTORY cannot be smaller than 1"
             )
-        if cls.is_final_class():
+        if not abstract:
             if cls.GROUP not in cls.SOLVERS:
                 cls.SOLVERS[cls.GROUP] = []
             cls.SOLVERS[cls.GROUP].append(cls)
@@ -138,11 +144,6 @@ class Solver(ABC, metaclass=MetaSolver):
     @abstractmethod
     def _step_builder_args(cls):
         """Arguments provided to the _step_builder function."""
-
-    @classmethod
-    def is_final_class(cls):
-        """True if the class represents a method and not a family/group of methods."""
-        return cls.GROUP and not cls.__name__.startswith("_")
 
     @property
     def t(self):

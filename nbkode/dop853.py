@@ -143,7 +143,7 @@ def step_builder(A, B, C, E5, E3, error_exponent):
     return _step
 
 
-class DOP853(corevs.VariableStepRungeKutta):
+class DOP853(corevs.VariableStepRungeKutta, abstract=True):
     """Explicit Runge-Kutta method of order 8.
 
     This is a Python implementation of "DOP853" algorithm originally written

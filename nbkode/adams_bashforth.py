@@ -20,7 +20,7 @@ import numpy as np
 from .corefs import FFixedStepBaseSolver
 
 
-class _AdamsBashforth(FFixedStepBaseSolver):
+class _AdamsBashforth(FFixedStepBaseSolver, abstract=True):
 
     GROUP = "Adams-Bashforth"
 

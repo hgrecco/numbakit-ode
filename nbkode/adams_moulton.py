@@ -21,7 +21,7 @@ import numpy as np
 from .corefs import BFixedStepBaseSolver
 
 
-class _AdamsMoulton(BFixedStepBaseSolver):
+class _AdamsMoulton(BFixedStepBaseSolver, abstract=True):
 
     GROUP = "Adams-Moulton"
 
