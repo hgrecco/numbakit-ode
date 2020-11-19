@@ -13,20 +13,22 @@ import pytest
 from numpy.testing import assert_allclose
 from scipy import integrate
 
-import nbkode.dop853
-from nbkode import runge_kutta
+import nbkode
+from nbkode.nbcompat import numba
 
 equivalents = [
-    (runge_kutta.RungeKutta23, integrate.RK23),
-    (runge_kutta.RungeKutta45, integrate.RK45),
-    (nbkode.dop853.DOP853, integrate.DOP853),
+    (nbkode.RungeKutta23, integrate.RK23),
+    (nbkode.RungeKutta45, integrate.RK45),
+    (nbkode.DOP853, integrate.DOP853),
 ]
 
 
+@numba.njit
 def exponential1(t, x):
     return -0.01 * x
 
 
+@numba.njit
 def exponential2(t, x):
     return np.asarray([-0.01, -0.05]) * x
 
@@ -74,8 +76,8 @@ def test_exponential2(nbkode_cls, scipy_cls):
         # We do not compare the last state as Scipy solvers are bound within step
         # and nbkode are not.
         msg = f"Step: {ndx}, Time: {scipy_sol.t}"
-        assert nbkode_sol.t == scipy_sol.t, msg
-        assert_allclose(nbkode_sol.y, scipy_sol.y)
-        assert_allclose(nbkode_sol.f, scipy_sol.f)
+        assert_allclose(nbkode_sol.t, scipy_sol.t, err_msg=msg)
+        assert_allclose(nbkode_sol.y, scipy_sol.y, err_msg=msg)
+        assert_allclose(nbkode_sol.f, scipy_sol.f, err_msg=msg)
         assert_allclose(nbkode_sol.h, scipy_sol.h_abs, err_msg=msg)
         assert_allclose(nbkode_sol.K, scipy_sol.K, err_msg=msg)

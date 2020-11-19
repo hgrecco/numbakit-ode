@@ -27,14 +27,15 @@ def f1(t, x, k):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_f1_public_api(solver):
+    h: float = 0.1
     # This is just running the public api, not checking correctness
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,))
+    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), h=h)
     ts, ys = sol.step(n=20)
 
     ########
     # STEP
     ########
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,))
+    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), h=h)
     t, y = sol.step()
     assert_allclose(t, np.atleast_1d(sol.t))
     assert_allclose(t, ts[0])
@@ -82,7 +83,7 @@ def test_f1_public_api(solver):
     #######
     # t_bound
     #######
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), t_bound=ts[0])
+    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), t_bound=ts[0], h=h)
 
     with pytest.raises(ValueError):
         sol.step(upto_t=ts[2])
@@ -102,23 +103,21 @@ def test_f1_public_api(solver):
     with pytest.raises(RuntimeError):
         sol.skip(n=2)
 
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000)
+    sol: nbkode.core.Solver = solver(
+        f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000, h=h
+    )
     trev_ = np.linspace(0, 10, 20)[::-1]
     trev, yrev = sol.run(trev_)
     assert_allclose(trev_, trev)
     assert yrev.shape == (len(trev_),) + y0_1.shape
 
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000)
+    sol: nbkode.core.Solver = solver(
+        f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000, h=h
+    )
     tvec = np.linspace(0, 10, 20)
     t, y = sol.run(tvec)
     assert_equal(t, trev[::-1])
     assert_equal(y, yrev[::-1])
-
-    tvec = [tvec[-2], 0.5 * (tvec[-2] + tvec[-1]), tvec[-1], tvec[-1] + 1, tvec[-1] + 2]
-    t3, y3 = sol.run(tvec)
-    assert_allclose(tvec, t3)
-    assert_allclose(y[-2], y3[0])
-    assert_allclose(y[-1], y3[2])
 
     with pytest.raises(ValueError):
         sol.run(0)
