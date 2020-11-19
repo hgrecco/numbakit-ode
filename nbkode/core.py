@@ -84,6 +84,9 @@ class Solver(ABC, metaclass=MetaSolver):
 
     #: Last LEN_HISTORY times (ts), states (ys) and derivatives (fs)
     cache: AlignedBuffer
+
+    #: Classmethods that build steps functions for a particular method.
+    _fixed_step_builder: Callable
     _step_builder: Callable
 
     def __init__(
@@ -138,12 +141,19 @@ class Solver(ABC, metaclass=MetaSolver):
             if cls.GROUP not in cls.SOLVERS:
                 cls.SOLVERS[cls.GROUP] = []
             cls.SOLVERS[cls.GROUP].append(cls)
-            cls._step = staticmethod(cls._step_builder(*cls._step_builder_args()))
+
+            cls._fixed_step = staticmethod(cls._fixed_step_builder())
+            cls._step = staticmethod(cls._step_builder())
 
     @classmethod
     @abstractmethod
-    def _step_builder_args(cls):
-        """Arguments provided to the _step_builder function."""
+    def _fixed_step_builder(cls):
+        """Builds the _fixed_step function of the method."""
+
+    @classmethod
+    @abstractmethod
+    def _step_builder(cls):
+        """Builds the _step function of the method."""
 
     @property
     def t(self):
@@ -197,17 +207,11 @@ class Solver(ABC, metaclass=MetaSolver):
 
         if n is None and upto_t is None:
             # No parameters, make one step.
-            if self._step(self.t_bound, *self._step_args(), *self._step_extra_args()):
+            if self._step(self.t_bound, *self._step_args):
                 return np.atleast_1d(self.t), self.y
         elif upto_t is None:
             # Only n is given, make n steps. If t_bound is reached, raise an exception.
-            ts, ys, scon = self._nsteps(
-                n,
-                self.t_bound,
-                self._step,
-                *self._step_args(),
-                *self._step_extra_args(),
-            )
+            ts, ys, scon = self._nsteps(n, self.t_bound, self._step, *self._step_args)
             if scon:
                 raise RuntimeError("Integrator reached t_bound.")
             return ts, ys
@@ -215,17 +219,13 @@ class Solver(ABC, metaclass=MetaSolver):
             # Only upto_t is given, move until that value.
             # t_bound will not be reached a it due to validation in _check_time
             self._check_time(upto_t)
-            ts, ys, scon = self._steps(
-                upto_t, self._step, *self._step_args(), *self._step_extra_args()
-            )
+            ts, ys, scon = self._steps(upto_t, self._step, *self._step_args)
             return ts, ys
         else:
             # Both parameters are given, move until either condition is reached.
             # t_bound will not be reached a it due to validation in _check_time
             self._check_time(upto_t)
-            ts, ys, scon = self._nsteps(
-                n, upto_t, self._step, *self._step_args(), *self._step_extra_args()
-            )
+            ts, ys, scon = self._nsteps(n, upto_t, self._step, *self._step_args)
             return ts, ys
 
     def skip(self, *, n: int = None, upto_t: float = None) -> None:
@@ -258,35 +258,21 @@ class Solver(ABC, metaclass=MetaSolver):
 
         if n is None and upto_t is None:
             # No parameters, make one step.
-            self._nskip(
-                1,
-                self.t_bound,
-                self._step,
-                *self._step_args(),
-                *self._step_extra_args(),
-            )
+            self._nskip(1, self.t_bound, self._step, *self._step_args)
         elif upto_t is None:
             # Only n is given, make n steps. If t_bound is reached, raise an exception.
-            if self._nskip(
-                n,
-                self.t_bound,
-                self._step,
-                *self._step_args(),
-                *self._step_extra_args(),
-            ):
+            if self._nskip(n, self.t_bound, self._step, *self._step_args):
                 raise RuntimeError("Integrator reached t_bound.")
         elif n is None:
             # Only upto_t is given, move until that value.
             # t_bound will not be reached a it due to validation in _check_time
             self._check_time(upto_t)
-            self._skip(upto_t, self._step, *self._step_args(), *self._step_extra_args())
+            self._skip(upto_t, self._step, *self._step_args)
         else:
             # Both parameters are given, move until either condition is reached.
             # t_bound will not be reached a it due to validation in _check_time
             self._check_time(upto_t)
-            self._nskip(
-                n, upto_t, self._step, *self._step_args(), *self._step_extra_args()
-            )
+            self._nskip(n, upto_t, self._step, *self._step_args)
 
     def run(self, t: Union[Real, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
         """Integrates the ODE interpolating at each of the timepoints `t`.
@@ -313,15 +299,15 @@ class Solver(ABC, metaclass=MetaSolver):
             ndx = np.argsort(t)
             t = t[ndx]
 
-        if t[0] < self._ts[0]:
+        if t[0] < self.cache.ts[0]:
             raise ValueError(
                 f"Cannot interpolate at t={t[0]} as it is smaller "
-                f"than the current smallest value in history ({self._ts[0]})"
+                f"than the current smallest value in history ({self.cache.ts[0]})"
             )
 
         self._check_time(np.max(t))
 
-        to_interpolate = t <= self._ts[-1]
+        to_interpolate = t <= self.t
         is_to_interpolate = np.any(to_interpolate)
         if is_to_interpolate:
             t_old = t[to_interpolate]
@@ -336,8 +322,7 @@ class Solver(ABC, metaclass=MetaSolver):
             t_to_run,
             self._step,
             self._interpolate,
-            *self._step_args(),
-            *self._step_extra_args(),
+            *self._step_args,
         )
 
         if is_to_interpolate:
@@ -368,27 +353,24 @@ class Solver(ABC, metaclass=MetaSolver):
 
         # TODO: make this work for array T
 
-        if not (self._ts[0] <= t <= self._ts[-1]):
+        if not (self.cache.ts[0] <= t <= self.cache.t):
             raise ValueError(f"Time {t} to interpolate outside range")
 
-        return self._interpolate(t, *self._step_args(), *self._step_extra_args())
-
-    def _step_args(self):
-        return self.rhs, self._ts, self._ys, self._fs
-
-    def _step_extra_args(self) -> tuple:
-        """Arguments to be passed to _step after t_bound."""
-        return tuple()
+        return self._interpolate(t, *self._step_args)
 
     @staticmethod
     @abstractmethod
-    def _step(t_bound, rhs, ts, ys, fs, *extra_args) -> int:
+    def _step(t_bound, rhs, cache, *args) -> int:
         """Perform one integration step."""
         raise NotImplementedError
 
+    @property
+    def _step_args(self):
+        return self.rhs, self.cache
+
     @staticmethod
     @numba.njit
-    def _steps(t_end, step, rhs, ts, ys, fs, *extra_args):
+    def _steps(t_end, step, rhs, cache, *args):
         """Step forward until:
             - the next step goes beyond `t_end`
 
@@ -403,11 +385,11 @@ class Solver(ABC, metaclass=MetaSolver):
         t_out = []
         y_out = []
 
-        while step(t_end, rhs, ts, ys, fs, *extra_args):
-            t_out.append(ts[-1])
-            y_out.append(np.copy(ys[-1]))
+        while step(t_end, rhs, cache, *args):
+            t_out.append(cache.t)
+            y_out.append(np.copy(cache.y))
 
-        out = np.empty((len(y_out), ys.shape[1]))
+        out = np.empty((len(y_out), cache.y.size))
         for ndx, yi in enumerate(y_out):
             out[ndx] = yi
 
@@ -415,7 +397,7 @@ class Solver(ABC, metaclass=MetaSolver):
 
     @staticmethod
     @numba.njit
-    def _nsteps(n_steps, t_end, step, rhs, ts, ys, fs, *extra_args):
+    def _nsteps(n_steps, t_end, step, rhs, cache, *args):
         """Step forward until:
             - the next step goes beyond `t_end`
             - `n_steps` steps are done.
@@ -431,21 +413,21 @@ class Solver(ABC, metaclass=MetaSolver):
         """
 
         t_out = np.empty((n_steps,))
-        y_out = np.empty((n_steps, ys.shape[-1]))
+        y_out = np.empty((n_steps, cache.y.size))
 
         for ndx in range(n_steps):
 
-            if not step(t_end, rhs, ts, ys, fs, *extra_args):
+            if not step(t_end, rhs, cache, *args):
                 return t_out[:ndx], y_out[:ndx], True
 
-            t_out[ndx] = ts[-1]
-            y_out[ndx] = ys[-1]
+            t_out[ndx] = cache.t
+            y_out[ndx] = cache.y
 
         return t_out, y_out, False
 
     @staticmethod
     @numba.njit
-    def _skip(t_end, step, rhs, ts, ys, fs, *extra_args) -> bool:
+    def _skip(t_end, step, rhs, cache, *args) -> bool:
         """Perform all steps required, stopping just before going beyond t_end.
 
         The stop condition is in the output to unify the API with `nsteps`
@@ -456,13 +438,13 @@ class Solver(ABC, metaclass=MetaSolver):
             stop_condition (always True)
         """
 
-        while step(t_end, rhs, ts, ys, fs, *extra_args):
+        while step(t_end, rhs, cache, *args):
             pass
         return True
 
     @staticmethod
     @numba.njit
-    def _nskip(n_steps, t_end, step, rhs, ts, ys, fs, *extra_args) -> bool:
+    def _nskip(n_steps, t_end, step, rhs, cache, *args) -> bool:
         """Step forward until:
             - the next step goes beyond `t_end`
             - `n_steps` steps are done.
@@ -477,17 +459,20 @@ class Solver(ABC, metaclass=MetaSolver):
             False, otherwise (it was able to run all all steps).
         """
         for _ in range(n_steps):
-            if not step(t_end, rhs, ts, ys, fs, *extra_args):
+            if not step(t_end, rhs, cache, *args):
                 return True
         return False
 
     @staticmethod
     @numba.njit()
-    def _interpolate(t_eval, rhs, ts, ys, fs, *extra_args):
+    def _interpolate(t_eval, rhs, cache, *args):
         """Interpolate solution at t_eval"""
-        y_out = np.empty(ys[0].shape)
+        if not (cache.ts[0] <= t_eval <= cache.t):
+            raise ValueError("Time to interpolate outside range")
+
+        y_out = np.empty(cache.y.size)
         for ndx in range(len(y_out)):
-            y_out[ndx] = np.interp(t_eval, ts, ys[:, ndx])
+            y_out[ndx] = np.interp(t_eval, cache.ts, cache.ys[:, ndx])
 
         return y_out
 
@@ -499,20 +484,18 @@ class Solver(ABC, metaclass=MetaSolver):
         step,
         interpolate,
         rhs,
-        ts,
-        ys,
-        fs,
-        *extra_args,
+        cache,
+        *args,
     ) -> tuple[np.ndarray, np.ndarray, bool]:
         """Run up to t, evaluating y at given t and return (t, y) as arrays."""
 
-        y_out = np.empty((t_eval.size, ys.shape[1]))
+        y_out = np.empty((t_eval.size, cache.y.size))
 
         for ndx, ti in enumerate(t_eval):
-            while ts[-1] < ti:
-                if not step(t_bound, rhs, ts, ys, fs, *extra_args):
+            while cache.t < ti:
+                if not step(t_bound, rhs, cache, *args):
                     return t_eval[:ndx], y_out[:ndx], True
-            y_out[ndx] = interpolate(ti, rhs, ts, ys, fs, *extra_args)
+            y_out[ndx] = interpolate(ti, rhs, cache, *args)
 
         return t_eval, y_out, False
 

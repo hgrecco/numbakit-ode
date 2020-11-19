@@ -214,10 +214,6 @@ class FixedStepBaseSolver(Solver, abstract=True):
 
     FIRST_STEPPER_CLS = "RungeKutta45"
 
-    @classmethod
-    def _step_builder_args(cls):
-        return (cls.COEFS,)
-
     def __init__(
         self,
         rhs: Callable,
@@ -313,7 +309,11 @@ class FFixedStepBaseSolver(FixedStepBaseSolver, abstract=True):
 
     IMPLICIT = False
 
-    _step_builder = forward_step_builder
+    @classmethod
+    def _fixed_step_builder(cls):
+        return forward_step_builder(cls.COEFS)
+
+    _step_builder = _fixed_step_builder
 
     def __init__(
         self,
@@ -363,7 +363,11 @@ class BFixedStepBaseSolver(FixedStepBaseSolver, abstract=True):
 
     IMPLICIT = True
 
-    _step_builder = backward_step_builder
+    @classmethod
+    def _fixed_step_builder(cls):
+        return backward_step_builder(cls.COEFS)
+
+    _step_builder = _fixed_step_builder
 
     def __init__(
         self,
