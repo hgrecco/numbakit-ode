@@ -14,9 +14,14 @@ from __future__ import annotations
 
 from abc import ABC, ABCMeta, abstractmethod
 from numbers import Real
-from typing import Callable, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
+from scipy.integrate._ivp.common import (
+    select_initial_step,
+    validate_max_step,
+    validate_tol,
+)
 
 from .buffer import AlignedBuffer
 from .nbcompat import is_jitted, numba
@@ -95,7 +100,9 @@ class Solver(ABC, metaclass=MetaSolver):
         t0: float,
         y0: np.ndarray,
         params: np.ndarray = None,
-        t_bound=np.inf,
+        *,
+        h: float = None,
+        t_bound: float = np.inf,
     ):
         self.t_bound = t_bound
 
@@ -119,6 +126,9 @@ class Solver(ABC, metaclass=MetaSolver):
                 return rhs(t, y, params)
 
             self.rhs = _rhs
+
+        if h is not None:  # It might be set automatically
+            self.h = np.array(h)
 
         t0 = float(t0)
         y0 = np.array(y0, dtype=float, ndmin=1)
@@ -498,6 +508,65 @@ class Solver(ABC, metaclass=MetaSolver):
             y_out[ndx] = interpolate(ti, rhs, cache, *args)
 
         return t_eval, y_out, False
+
+
+variable_step_options = (
+    "atol",
+    "rtol",
+    "min_step",
+    "max_step",
+    "min_factor",
+    "max_factor",
+    "safety_factor",
+)
+
+
+@numba.experimental.jitclass([(s, numba.float64) for s in variable_step_options])
+class VariableStepOptions:
+    def __init__(
+        self,
+        atol: float = 1e-6,
+        rtol: float = 1e-3,
+        min_step: float = 1e-15,
+        max_step: float = np.inf,
+        min_factor: float = 0.2,
+        max_factor: float = 10.0,
+        safety_factor: float = 0.9,
+    ):
+        self.atol = atol
+        self.rtol = rtol
+        self.min_step = min_step
+        self.max_step = max_step
+        self.min_factor = min_factor
+        self.max_factor = max_factor
+        self.safety_factor = safety_factor
+
+
+class VariableStep:
+    # instance attributes
+    first_step: Optional[float]
+    options: VariableStepOptions
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.options = VariableStepOptions(
+            **{k: kwargs.pop(k) for k in variable_step_options if k in kwargs}
+        )
+
+        validate_max_step(self.options.max_step)
+        validate_tol(self.options.rtol, self.options.atol, self.y.size)
+
+        h = select_initial_step(
+            self.rhs,
+            self.t,
+            self.y,
+            self.f,
+            1,
+            self.error_estimator_order,
+            self.options.rtol,
+            self.options.atol,
+        )
+        self.h = np.array(h, dtype=float)
 
 
 def check(solver, implicit=None, fixed_step=None):
