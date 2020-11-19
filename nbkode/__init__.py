@@ -27,7 +27,7 @@ from .adams_moulton import (
 from .core import get_groups, get_solvers
 from .dop853 import DOP853
 from .euler import BackwardEuler, Euler, ForwardEuler
-from .runge_kutta import RungeKutta23, RungeKutta45
+from .runge_kutta.explicit import RungeKutta23, RungeKutta45
 
 try:
     from importlib.metadata import version
