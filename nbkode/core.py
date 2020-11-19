@@ -18,6 +18,7 @@ from typing import Callable, Tuple, Union
 
 import numpy as np
 
+from .buffer import AlignedBuffer
 from .nbcompat import is_jitted, numba
 from .util import CaseInsensitiveDict
 
@@ -78,20 +79,11 @@ class Solver(ABC, metaclass=MetaSolver):
     #: user rhs (same as rhs if it was originally jitted and with the right signature)
     user_rhs: Callable
 
-    #: Last LEN_HISTORY times
-    _ts: np.ndarray
-
-    #: Last LEN_HISTORY states
-    _ys: np.ndarray
-
-    #: Last LEN_HISTORY evaluations of fun at (_t, _y)
-    _ys: np.ndarray
-
     #: extra arguments for the user callable
     params: np.ndarray or None
 
-    #: Function that build the _step function for a particular method.
-    #: (*args) -> Callable
+    #: Last LEN_HISTORY times (ts), states (ys) and derivatives (fs)
+    cache: AlignedBuffer
     _step_builder: Callable
 
     def __init__(
@@ -103,7 +95,7 @@ class Solver(ABC, metaclass=MetaSolver):
         t_bound=np.inf,
     ):
         self.t_bound = t_bound
-        y0 = np.ascontiguousarray(y0)
+
         if params is not None:
             params = np.ascontiguousarray(params)
 
@@ -125,10 +117,9 @@ class Solver(ABC, metaclass=MetaSolver):
 
             self.rhs = _rhs
 
-        f = self.rhs(t0, y0)
-        self._fs = np.full((self.LEN_HISTORY, y0.size), f, dtype=float)
-        self._ts = np.full(self.LEN_HISTORY, t0, dtype=float)
-        self._ys = np.full((self.LEN_HISTORY, y0.size), y0, dtype=float)
+        t0 = float(t0)
+        y0 = np.array(y0, dtype=float, ndmin=1)
+        self.cache = AlignedBuffer(self.LEN_HISTORY, t0, y0, self.rhs(t0, y0))
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -155,15 +146,15 @@ class Solver(ABC, metaclass=MetaSolver):
 
     @property
     def t(self):
-        return self._ts[-1]
+        return self.cache.t
 
     @property
     def y(self):
-        return self._ys[-1]
+        return self.cache.y
 
     @property
     def f(self):
-        return self._fs[-1]
+        return self.cache.f
 
     def _check_time(self, t):
         if t > self.t_bound:
