@@ -11,8 +11,7 @@
 import numpy as np
 from scipy import integrate
 
-import nbkode.dop853
-from nbkode import runge_kutta
+import nbkode
 from nbkode.nbcompat import numba
 
 from .common import NumbaStepModes
@@ -24,9 +23,9 @@ by_name = {
         "DOP853": integrate.DOP853,
     },
     "nbkode": {
-        "RungeKutta23": runge_kutta.RungeKutta23,
-        "RungeKutta45": runge_kutta.RungeKutta45,
-        "DOP853": nbkode.dop853.DOP853,
+        "RungeKutta23": nbkode.RungeKutta23,
+        "RungeKutta45": nbkode.RungeKutta45,
+        "DOP853": nbkode.DOP853,
     },
 }
 
