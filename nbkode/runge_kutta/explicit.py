@@ -2,6 +2,7 @@ import numpy as np
 
 from ..nbcompat import numba
 from ..util import classproperty
+from . import dop853_coefficients
 from .core import AdaptiveRungeKutta, RungeKutta
 
 
@@ -258,18 +259,57 @@ class Fehlberg45(AdaptiveRungeKutta, ERK, abstract=True):
     error_estimator_order = 4
 
 
-class DOP853(AdaptiveRungeKutta, abstract=True):
-    E5 = NotImplementedError
-    E3 = NotImplementedError
+class DOP853(FSAL):
+    """Explicit Runge-Kutta method of order 8.
+
+    This is a Python implementation of "DOP853" algorithm originally written
+    in Fortran [#]_, [#]_. Note that this is not a literate translation, but
+    the algorithmic core and coefficients are the same.
+    Can be applied in the complex domain.
+
+
+    References
+    ----------
+    .. [#] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
+           Equations I: Nonstiff Problems", Sec. II.
+    .. [#] `Page with original Fortran code of DOP853
+            <http://www.unige.ch/~hairer/software.html>`_.
+    """
+
+    order = 8
+    error_estimator_order = 7
+    A = dop853_coefficients.A[:12, :12]
+    B = dop853_coefficients.B
+    C = dop853_coefficients.C[:12]
+    E3 = dop853_coefficients.E3
+    E5 = dop853_coefficients.E5
 
     @classmethod
-    def _build_error(cls):
-        E5 = cls.E5
-        E3 = cls.E3
+    def _step_builder(cls):
+        E3, E5, error_exponent = cls.E3, cls.E5, cls.error_exponent
+        fixed_step = cls._fixed_step
+        step_error = cls._step_error
+        scaled_error_norm = cls._scaled_error_norm
+        step_update = cls._step_update
 
-        def _error(h, K, y, y_prev, options):
-            err5 = cls._step_error(h, K, E5)
-            err3 = cls._step_error(h, K, E3)
-            err5 = cls._scaled_error_norm(y, y_prev, err5, options)
-            err3 = cls._scaled_error_norm(y, y_prev, err3, options)
-            return err5 / np.sqrt(1 + ((err3 / (10 * err5)) ** 2))
+        @numba.njit
+        def _step(t_bound, rhs, cache, h, K, options):
+            if cache.t + h > t_bound:
+                return False
+
+            while True:
+                t, y = fixed_step(rhs, cache, h, K)
+                err5 = step_error(h, K, E5)
+                err3 = step_error(h, K, E3)
+                err5 = scaled_error_norm(y, cache.y, err5, options)
+                err3 = scaled_error_norm(y, cache.y, err3, options)
+                error_norm = err5 / np.sqrt(1 + ((err3 / (10 * err5)) ** 2))
+                if step_update(error_norm, h, options, error_exponent):
+                    cache.t = t
+                    cache.y = y
+                    cache.f = K[-1]
+                    break
+
+            return True
+
+        return _step

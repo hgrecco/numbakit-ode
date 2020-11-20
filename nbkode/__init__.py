@@ -11,7 +11,6 @@
 """
 
 from .core import get_groups, get_solvers
-from .dop853 import DOP853
 from .euler import BackwardEuler, Euler, ForwardEuler
 from .multistep.adams_bashforth import (
     AdamsBashforth1,
@@ -28,7 +27,7 @@ from .multistep.adams_moulton import (
     AdamsMoulton5,
 )
 from .multistep.bdf import BDF1, BDF2, BDF3, BDF4, BDF5, BDF6
-from .runge_kutta.explicit import RungeKutta23, RungeKutta45
+from .runge_kutta.explicit import DOP853, RungeKutta23, RungeKutta45
 
 try:
     from importlib.metadata import version
