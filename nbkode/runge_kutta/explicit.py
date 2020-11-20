@@ -96,9 +96,7 @@ class FSAL(AdaptiveRungeKutta, ERK, abstract=True):
                 error = step_error(h, K, E)
                 error_norm = scaled_error_norm(y, cache.y, error, options)
                 if step_update(error_norm, h, options, error_exponent):
-                    cache.t = t
-                    cache.y = y
-                    cache.f = K[-1]
+                    cache.push(t, y, K[-1])
                     break
 
             return True
@@ -305,9 +303,7 @@ class DOP853(FSAL):
                 err3 = scaled_error_norm(y, cache.y, err3, options)
                 error_norm = err5 / np.sqrt(1 + ((err3 / (10 * err5)) ** 2))
                 if step_update(error_norm, h, options, error_exponent):
-                    cache.t = t
-                    cache.y = y
-                    cache.f = K[-1]
+                    cache.push(t, y, K[-1])
                     break
 
             return True

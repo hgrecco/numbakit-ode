@@ -19,7 +19,7 @@ import nbkode
 
 solvers_i = nbkode.get_solvers(implicit=True, fixed_step=True)
 solvers_e = nbkode.get_solvers(implicit=False, fixed_step=True)
-solvers = nbkode.get_solvers(fixed_step=True)
+solvers = nbkode.get_solvers(fixed_step=True, multistep=True)
 
 
 y0_1 = np.atleast_1d(1.0)
@@ -58,24 +58,26 @@ def test_f2(solver):
 @pytest.mark.parametrize("solver", solvers)
 def test_first_stepper(solver):
     sol = solver(f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls=None)
-    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
+    assert sol.t == 0.0
+    sol.step()
+    assert sol.t == sol.h
 
     sol = solver(
         f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls="AdamsBashforth1"
     )
-    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
+    assert sol.t == (sol.ORDER - 1) * sol.h
 
     sol = solver(
         f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls=nbkode.AdamsBashforth1
     )
-    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
+    assert sol.t == (sol.ORDER - 1) * sol.h
 
     sol = solver(
         f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls="RungeKutta45"
     )
-    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
+    assert sol.t == (sol.ORDER - 1) * sol.h
 
     sol = solver(
         f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls=nbkode.RungeKutta45
     )
-    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
+    assert sol.t == (sol.ORDER - 1) * sol.h

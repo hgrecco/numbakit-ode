@@ -146,7 +146,7 @@ class Solver(ABC, metaclass=MetaSolver):
             if not isinstance(cls.LEN_HISTORY, int):
                 raise ValueError(f"{cls.__name__}.LEN_HISTORY must be an integer.")
 
-            elif cls.LEN_HISTORY < 1:
+            elif cls.LEN_HISTORY < 2:
                 raise ValueError(
                     f"While defining {cls.__name__}, "
                     f"LEN_HISTORY cannot be smaller than 1"
@@ -368,7 +368,9 @@ class Solver(ABC, metaclass=MetaSolver):
         # TODO: make this work for array T
 
         if not (self.cache.ts[0] <= t <= self.cache.t):
-            raise ValueError(f"Time {t} to interpolate outside range")
+            raise ValueError(
+                f"Time {t} to interpolate outside range ([{self.cache.ts[0]}, {self.cache.t}])"
+            )
 
         return self._interpolate(t, *self._step_args)
 
@@ -525,7 +527,7 @@ variable_step_options = (
 )
 
 
-@numba.experimental.jitclass([(s, numba.float64) for s in variable_step_options])
+@numba.jitclass([(s, numba.float64) for s in variable_step_options])
 class VariableStepOptions:
     def __init__(
         self,
@@ -573,17 +575,29 @@ class VariableStep:
         self.h = np.array(h, dtype=float)
 
 
-def check(solver, implicit=None, fixed_step=None):
+def check(solver, implicit=None, fixed_step=None, runge_kutta=None, multistep=None):
     if implicit is not None:
         if solver.IMPLICIT is not implicit:
             return False
     if fixed_step is not None:
         if solver.FIXED_STEP is not fixed_step:
             return False
+    if runge_kutta is not None:
+        from .runge_kutta.core import RungeKutta
+
+        if issubclass(solver, RungeKutta) is not runge_kutta:
+            return False
+    if multistep is not None:
+        from .multistep.core import Multistep
+
+        if issubclass(solver, Multistep) is not multistep:
+            return False
     return True
 
 
-def get_solvers(*groups, implicit=None, fixed_step=None):
+def get_solvers(
+    *groups, implicit=None, fixed_step=None, runge_kutta=None, multistep=None
+):
     """Get available solvers.
 
     Parameters
@@ -606,7 +620,9 @@ def get_solvers(*groups, implicit=None, fixed_step=None):
         try:
             out.extend(
                 filter(
-                    lambda solver: check(solver, implicit, fixed_step),
+                    lambda solver: check(
+                        solver, implicit, fixed_step, runge_kutta, multistep
+                    ),
                     Solver.SOLVERS[group],
                 )
             )

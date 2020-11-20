@@ -8,12 +8,8 @@ class AdamsBashforth(ExplicitMultistep, abstract=True):
     GROUP = "Adams-Bashforth"
 
     @classproperty
-    def LEN_HISTORY(cls):
-        return len(cls.B)
-
-    @classproperty
     def A(cls):
-        A = np.zeros(cls.LEN_HISTORY)
+        A = np.zeros_like(cls.B)
         A[-1] = -1
         return A
 

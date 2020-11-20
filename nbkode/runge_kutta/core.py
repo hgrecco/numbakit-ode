@@ -40,9 +40,7 @@ class RungeKutta(Solver, abstract=True):
                 return False
 
             t, y = fixed_step(rhs, cache, h, K)
-            cache.t = t
-            cache.y = y
-            cache.f = rhs(t, y)
+            cache.push(t, y, rhs(t, y))
             return True
 
         return _step
@@ -122,9 +120,7 @@ class AdaptiveRungeKutta(VariableStep, RungeKutta, abstract=True):
                 error = step_error(h, K, E)
                 error_norm = scaled_error_norm(y, cache.y, error, options)
                 if step_update(error_norm, h, options, error_exponent):
-                    cache.t = t
-                    cache.y = y
-                    cache.f = rhs(t, y)
+                    cache.push(t, y, rhs(t, y))
                     break
 
             return True

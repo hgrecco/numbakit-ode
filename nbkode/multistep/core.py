@@ -20,22 +20,32 @@ class Multistep(Solver, abstract=True):
     Bn: float
     order: float
 
+    ORDER: int
+
+    @classproperty
+    def ORDER(cls):
+        return cls.A.size
+
     @classproperty
     def IMPLICIT(cls):
         return cls.Bn == 0
 
     @classproperty
     def LEN_HISTORY(cls):
-        return len(cls.A)
+        return max(cls.ORDER, 2)
 
-    def __init__(self, *args, first_stepper_cls=None, **kwargs):
+    def __init__(self, *args, first_stepper_cls="auto", **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.LEN_HISTORY == 1:
+        if first_stepper_cls is None or self.ORDER == 1:
+            # We push 1 less because one was done at Solver.s
+            for _ in range(self.LEN_HISTORY - 1):
+                self.cache.push(self.t, self.y, self.f)
             return
 
-        if first_stepper_cls is None:
+        if first_stepper_cls == "auto":
             first_stepper_cls = self.FIRST_STEPPER_CLS
+
         if isinstance(first_stepper_cls, str):
             import nbkode
 
@@ -44,19 +54,15 @@ class Multistep(Solver, abstract=True):
         if first_stepper_cls.FIXED_STEP:
             # For fixed step solver we do N steps with the step size.
             solver = first_stepper_cls(self.rhs, self.t, self.y, h=self.h)
-            for _ in range(1, self.LEN_HISTORY):
+            for _ in range(self.ORDER - 1):
                 solver.step()
-                self.cache.t = solver.t
-                self.cache.y = solver.y
-                self.cache.f = solver.f
+                self.cache.push(solver.t, solver.y, solver.f)
         else:
             # For variable step solver we run N times until h, 2h, 3h .. (ORDER - 1)h
             solver = first_stepper_cls(self.rhs, self.t, self.y)
-            ts, ys = solver.run(np.arange(1, self.LEN_HISTORY) * self.h)
+            ts, ys = solver.run(np.arange(1, self.ORDER) * self.h)
             for t, y in zip(ts, ys):
-                self.cache.t = t
-                self.cache.y = y
-                self.cache.f = self.rhs(t, y)
+                self.cache.push(t, y, self.rhs(t, y))
 
     @staticmethod
     def _fixed_step():
@@ -72,9 +78,7 @@ class Multistep(Solver, abstract=True):
                 return False
 
             t, y = fixed_step(rhs, cache, h)
-            cache.t = t
-            cache.y = y
-            cache.f = rhs(t, y)
+            cache.push(t, y, rhs(t, y))
             return True
 
         return _step
@@ -91,11 +95,24 @@ class ExplicitMultistep(Multistep, abstract=True):
     def _fixed_step_builder(cls):
         A, B = cls.A, cls.B
 
-        @numba.njit
-        def _fixed_step(rhs, cache, h):
-            t_new = cache.t + h
-            y_new = h * B @ cache.fs - A @ cache.ys
-            return t_new, y_new
+        if A.size < cls.LEN_HISTORY or B.size < cls.LEN_HISTORY:
+
+            deltaA = cls.LEN_HISTORY - A.size
+            deltaB = cls.LEN_HISTORY - B.size
+
+            @numba.njit
+            def _fixed_step(rhs, cache, h):
+                t_new = cache.t + h
+                y_new = h * B @ cache.fs[deltaB:] - A @ cache.ys[deltaA:]
+                return t_new, y_new
+
+        else:
+
+            @numba.njit
+            def _fixed_step(rhs, cache, h):
+                t_new = cache.t + h
+                y_new = h * B @ cache.fs - A @ cache.ys
+                return t_new, y_new
 
         return _fixed_step
 
@@ -109,24 +126,51 @@ class ImplicitMultistep(Multistep, abstract=True):
         def implicit_root(y, rhs, t, h_Bn, K):
             return y - h_Bn * rhs(t, y) - K
 
-        @numba.njit
-        def _fixed_step(rhs, cache, h):
-            t_new = cache.t + h
-            K = h * B @ cache.fs - A @ cache.ys
+        if A.size < cls.LEN_HISTORY or B.size < cls.LEN_HISTORY:
 
-            if cache.y.size == 1:
-                y_new = j_newton(
-                    implicit_root,
-                    cache.y,
-                    args=(rhs, t_new, h * Bn, K),
-                )
-            else:
-                y_new = newton_hd(
-                    implicit_root,
-                    cache.y,
-                    args=(rhs, t_new, h * Bn, K),
-                )
+            deltaA = cls.LEN_HISTORY - A.size
+            deltaB = cls.LEN_HISTORY - B.size
 
-            return t_new, y_new
+            @numba.njit
+            def _fixed_step(rhs, cache, h):
+                t_new = cache.t + h
+                K = h * B @ cache.fs[deltaB:] - A @ cache.ys[deltaA:]
+
+                if cache.y.size == 1:
+                    y_new = j_newton(
+                        implicit_root,
+                        cache.y,
+                        args=(rhs, t_new, h * Bn, K),
+                    )
+                else:
+                    y_new = newton_hd(
+                        implicit_root,
+                        cache.y,
+                        args=(rhs, t_new, h * Bn, K),
+                    )
+
+                return t_new, y_new
+
+        else:
+
+            @numba.njit
+            def _fixed_step(rhs, cache, h):
+                t_new = cache.t + h
+                K = h * B @ cache.fs - A @ cache.ys
+
+                if cache.y.size == 1:
+                    y_new = j_newton(
+                        implicit_root,
+                        cache.y,
+                        args=(rhs, t_new, h * Bn, K),
+                    )
+                else:
+                    y_new = newton_hd(
+                        implicit_root,
+                        cache.y,
+                        args=(rhs, t_new, h * Bn, K),
+                    )
+
+                return t_new, y_new
 
         return _fixed_step

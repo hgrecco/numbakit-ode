@@ -27,15 +27,20 @@ def f1(t, x, k):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_f1_public_api(solver):
-    h: float = 0.1
+
+    kwargs = dict(h=0.1)
+
+    if issubclass(solver, nbkode.multistep.core.Multistep):
+        kwargs["first_stepper_cls"] = None
+
     # This is just running the public api, not checking correctness
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), h=h)
+    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), **kwargs)
     ts, ys = sol.step(n=20)
 
     ########
     # STEP
     ########
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), h=h)
+    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), **kwargs)
     t, y = sol.step()
     assert_allclose(t, np.atleast_1d(sol.t))
     assert_allclose(t, ts[0])
@@ -83,7 +88,9 @@ def test_f1_public_api(solver):
     #######
     # t_bound
     #######
-    sol: nbkode.core.Solver = solver(f1, 0.0, y0_1, params=(0.01,), t_bound=ts[0], h=h)
+    sol: nbkode.core.Solver = solver(
+        f1, 0.0, y0_1, params=(0.01,), t_bound=ts[0], **kwargs
+    )
 
     with pytest.raises(ValueError):
         sol.step(upto_t=ts[2])
@@ -104,7 +111,7 @@ def test_f1_public_api(solver):
         sol.skip(n=2)
 
     sol: nbkode.core.Solver = solver(
-        f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000, h=h
+        f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000, **kwargs
     )
     trev_ = np.linspace(0, 10, 20)[::-1]
     trev, yrev = sol.run(trev_)
@@ -112,7 +119,7 @@ def test_f1_public_api(solver):
     assert yrev.shape == (len(trev_),) + y0_1.shape
 
     sol: nbkode.core.Solver = solver(
-        f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000, h=h
+        f1, 0.0, y0_1, params=(0.01,), t_bound=10_000_000, **kwargs
     )
     tvec = np.linspace(0, 10, 20)
     t, y = sol.run(tvec)

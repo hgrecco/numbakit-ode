@@ -23,3 +23,5 @@ if os.environ.get("NBKODE_NONUMBA", 0):
 else:
     import numba  # noqa: F401
     from numba.extending import is_jitted  # noqa: F401
+
+    numba.jitclass = numba.experimental.jitclass

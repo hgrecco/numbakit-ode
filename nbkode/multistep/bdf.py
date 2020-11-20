@@ -9,7 +9,7 @@ class BDF(ImplicitMultistep, abstract=True):
 
     @classproperty
     def B(cls):
-        return np.zeros(cls.LEN_HISTORY)
+        return np.zeros_like(cls.A)
 
 
 class BDF1(BDF):

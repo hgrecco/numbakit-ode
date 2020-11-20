@@ -13,7 +13,7 @@ import nbkode
 
 
 def test_get_solvers():
-    assert len(nbkode.get_solvers()) == 15
+    assert len(nbkode.get_solvers()) == 26
 
 
 def test_get_solvers_euler():
