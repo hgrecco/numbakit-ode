@@ -73,7 +73,7 @@ def define_sol(integrator):
     solvers = {solver.__name__: solver for solver in nbkode.get_solvers()}
     solver_cls = solvers[integrator]
 
-    sol = solver_cls(func, 0.0, y0, params=(-0.01,))
+    sol = solver_cls(func, 0.0, y0, params=(-0.01,), h=0.01)
 
 
 ###############
