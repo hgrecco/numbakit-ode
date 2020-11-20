@@ -37,7 +37,7 @@ def f2(t, x, k):
 @pytest.mark.parametrize("solver", solvers)
 def test_f1(solver):
 
-    solver = solver(f1, 0.0, y0_1, params=(0.01,))
+    solver = solver(f1, 0.0, y0_1, params=(0.01,), h=0.01)
     solver.skip(upto_t=10)
 
     # TODO: This is a rather large tolerance.
@@ -47,7 +47,7 @@ def test_f1(solver):
 @pytest.mark.parametrize("solver", solvers)
 def test_f2(solver):
 
-    solver = solver(f2, 0.0, y0_2, params=(0.01, 0.05))
+    solver = solver(f2, 0.0, y0_2, params=(0.01, 0.05), h=0.01)
     solver.skip(upto_t=10)
 
     # TODO: This is a rather large tolerance.
@@ -57,22 +57,25 @@ def test_f2(solver):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_first_stepper(solver):
-    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls=None)
-    assert sol.t == 0.0
-    sol.step()
-    assert sol.t == sol.step_size
+    sol = solver(f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls=None)
+    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
 
-    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls="Euler")
-    assert sol.t == (sol.ORDER - 1) * sol.step_size
+    sol = solver(
+        f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls="AdamsBashforth1"
+    )
+    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
 
-    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls=nbkode.Euler)
-    assert sol.t == (sol.ORDER - 1) * sol.step_size
+    sol = solver(
+        f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls=nbkode.AdamsBashforth1
+    )
+    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
 
-    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls="RungeKutta45")
-    assert sol.t == (sol.ORDER - 1) * sol.step_size
+    sol = solver(
+        f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls="RungeKutta45"
+    )
+    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h
 
-    sol = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls=nbkode.RungeKutta45)
-    assert sol.t == (sol.ORDER - 1) * sol.step_size
-
-    sol2 = solver(f1, 0.0, y0_1, params=(0.01,), first_stepper_cls="auto")
-    assert sol.t == sol2.t
+    sol = solver(
+        f1, 0.0, y0_1, params=(0.01,), h=0.01, first_stepper_cls=nbkode.RungeKutta45
+    )
+    assert sol.t == (sol.LEN_HISTORY - 1) * sol.h

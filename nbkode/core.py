@@ -142,12 +142,16 @@ class Solver(ABC, metaclass=MetaSolver):
         the corresponding solver to the SOLVERS dictionary.
         """
         super().__init_subclass__(**kwargs)
-        if cls.LEN_HISTORY and cls.LEN_HISTORY < 1:
-            raise ValueError(
-                f"While defining {cls.__name__}, "
-                f"LEN_HISTORY cannot be smaller than 1"
-            )
         if not abstract:
+            if not isinstance(cls.LEN_HISTORY, int):
+                raise ValueError(f"{cls.__name__}.LEN_HISTORY must be an integer.")
+
+            elif cls.LEN_HISTORY < 1:
+                raise ValueError(
+                    f"While defining {cls.__name__}, "
+                    f"LEN_HISTORY cannot be smaller than 1"
+                )
+
             if cls.GROUP not in cls.SOLVERS:
                 cls.SOLVERS[cls.GROUP] = []
             cls.SOLVERS[cls.GROUP].append(cls)

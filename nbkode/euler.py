@@ -12,28 +12,26 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from .corefs import BFixedStepBaseSolver, FFixedStepBaseSolver
+from .multistep.adams_bashforth import AdamsBashforth1
+from .multistep.adams_moulton import AdamsMoulton1
 
 
-class ForwardEuler(FFixedStepBaseSolver):
+class ForwardEuler(AdamsBashforth1):
     """The simple explicit (forward) Euler scheme
 
-    y[n+1] = y[n] + f(t[n], y[n]) * h
+    y[n+1] = y[n] + h * f(t[n], y[n])
     """
 
     GROUP = "Euler"
-
-    COEFS = 1.0
 
 
 Euler = ForwardEuler
 
 
-class BackwardEuler(BFixedStepBaseSolver):
-    """The simple explicit (forward) Euler scheme
+class BackwardEuler(AdamsMoulton1):
+    """The simple implicit (backward) Euler scheme
 
-    y[n+1] = y[n] + f(t[n+1], y[n+1]) * h
+    y[n+1] = y[n] + h * f(t[n+1], y[n+1])
     """
 
     GROUP = "Euler"
-    COEFS = 1.0
