@@ -9,6 +9,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import pytest
+
 import nbkode
 
 
@@ -39,3 +41,29 @@ def test_get_solvers_fixed_step():
     assert set(
         nbkode.get_solvers(fixed_step=False) + nbkode.get_solvers(fixed_step=True)
     ) == set(nbkode.get_solvers())
+
+
+def test_get_solver():
+    assert nbkode.get_solver("forwardeuler") is nbkode.get_solver("ForwardEuler")
+
+    assert nbkode.get_solver("euler") is nbkode.get_solver("ForwardEuler")
+
+    with pytest.raises(ValueError):
+        nbkode.get_solver("not_a_solver")
+
+
+def test_nbkode_module():
+    assert len(dir(nbkode)) == 26 + 4
+
+    with pytest.warns(UserWarning):
+        sol = nbkode.__getattr__("euler")
+        # For some reason
+        # nbkode.euler or getattr(nbkode, "euler")
+        # does not warn
+
+    assert sol is nbkode.get_solver("ForwardEuler")
+
+    with pytest.raises(AttributeError):
+        sol = nbkode.not_a_solver
+
+    assert getattr(nbkode, "ForwardEuler") is nbkode.get_solver("ForwardEuler")

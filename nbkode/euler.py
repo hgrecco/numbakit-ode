@@ -22,10 +22,9 @@ class ForwardEuler(AdamsBashforth1):
     y[n+1] = y[n] + h * f(t[n], y[n])
     """
 
+    ALIASES = ("Euler",)
+
     GROUP = "Euler"
-
-
-Euler = ForwardEuler
 
 
 class BackwardEuler(AdamsMoulton1):

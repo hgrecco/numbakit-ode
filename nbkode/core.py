@@ -68,6 +68,9 @@ class Solver(ABC, metaclass=MetaSolver):
     """
 
     SOLVERS = CaseInsensitiveDict()
+    SOLVERS_BY_GROUP = CaseInsensitiveDict()
+
+    ALIASES = ()
 
     LEN_HISTORY: int = 2
 
@@ -139,7 +142,7 @@ class Solver(ABC, metaclass=MetaSolver):
 
         If abstract is True, the class represents a family/group of methods.
         If abstract is False, builds cls._fixed_step and cls._step, and adds
-        the corresponding solver to the SOLVERS dictionary.
+        the corresponding solver to the SOLVERS_BY_GROUP dictionary.
         """
         super().__init_subclass__(**kwargs)
         if not abstract:
@@ -152,9 +155,16 @@ class Solver(ABC, metaclass=MetaSolver):
                     f"LEN_HISTORY cannot be smaller than 1"
                 )
 
-            if cls.GROUP not in cls.SOLVERS:
-                cls.SOLVERS[cls.GROUP] = []
-            cls.SOLVERS[cls.GROUP].append(cls)
+            for name_or_alias in (cls.__name__,) + cls.ALIASES:
+                if name_or_alias in cls.SOLVERS:
+                    raise Exception(
+                        f"Duplicate name/alias {cls.__name__} in {cls} "
+                        f"collides with {cls.SOLVERS[name_or_alias]}"
+                    )
+                cls.SOLVERS[name_or_alias] = cls
+            if cls.GROUP not in cls.SOLVERS_BY_GROUP:
+                cls.SOLVERS_BY_GROUP[cls.GROUP] = []
+            cls.SOLVERS_BY_GROUP[cls.GROUP].append(cls)
 
             cls._fixed_step = staticmethod(cls._fixed_step_builder())
             cls._step = staticmethod(cls._step_builder())
@@ -614,7 +624,7 @@ def get_solvers(
     tuple(Solver)
     """
     if not groups:
-        groups = Solver.SOLVERS.keys()
+        groups = Solver.SOLVERS_BY_GROUP.keys()
     out = []
     for group in groups:
         try:
@@ -623,15 +633,47 @@ def get_solvers(
                     lambda solver: check(
                         solver, implicit, fixed_step, runge_kutta, multistep
                     ),
-                    Solver.SOLVERS[group],
+                    Solver.SOLVERS_BY_GROUP[group],
                 )
             )
         except KeyError:
-            m = tuple(Solver.SOLVERS.keys())
+            m = tuple(Solver.SOLVERS_BY_GROUP.keys())
             raise KeyError(f"Group {group} not found. Valid values: {m}")
     return tuple(out)
 
 
 def get_groups():
     """Get group names."""
-    return tuple(sorted(Solver.SOLVERS.keys()))
+    return tuple(sorted(Solver.SOLVERS_BY_GROUP.keys()))
+
+
+_VALID_NAME_ALIAS = None
+
+
+def list_solvers(
+    fmt_string="{cls.__name__}",
+    alias_fmt_string="{name} (alias of {cls.__name__})",
+    include_alias=True,
+):
+    out = []
+    for k, v in Solver.SOLVERS.items():
+        if k == v.__name__:
+            out.append(fmt_string.format(cls=v, name=k))
+        elif include_alias:
+            out.append(alias_fmt_string.format(cls=v, name=k))
+    return out
+
+
+def get_solver(name_or_alias):
+    try:
+        return Solver.SOLVERS[name_or_alias]
+    except KeyError:
+        pass
+
+    global _VALID_NAME_ALIAS
+    if not _VALID_NAME_ALIAS:
+        _VALID_NAME_ALIAS = "- " + "\n- ".join(sorted(list_solvers()))
+
+    raise ValueError(
+        f"No solver named {name_or_alias}, valid options are:\n{_VALID_NAME_ALIAS}"
+    )
