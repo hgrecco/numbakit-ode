@@ -275,8 +275,9 @@ def _newton(
 
     1. Has no `disp` argument
     2. Different output:
-        full_output
+        (full_output
         (p0, number of function calls, number of iterations, flag)
+        )
         NewtonEnum
     """
 
@@ -313,7 +314,7 @@ def _newton(
                     my_flag,
                 )
             newton_step = fval / fder
-            if fprime2:
+            if fprime2 is not None:
                 fder2 = fprime2(p0, *args)
                 funcalls += 1
                 # Halley's method:
@@ -326,7 +327,7 @@ def _newton(
                 if np.abs(adj) < 1:
                     newton_step /= 1.0 - adj
             p = p0 - newton_step
-            if np.isclose(p, p0, rtol=rtol, atol=tol):
+            if isclose(p, p0, rtol=rtol, atol=tol):
                 return (
                     _results_select(full_output, (p, funcalls, itr + 1, _ECONVERGED)),
                     my_flag,
