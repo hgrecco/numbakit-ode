@@ -276,7 +276,7 @@ class DOP853(FSAL):
 
     order = 8
     error_estimator_order = 7
-    A = dop853_coefficients.A[:12, :12]
+    A = dop853_coefficients.A[:12, :12].copy()  # Copy makes array contiguous.
     B = dop853_coefficients.B
     C = dop853_coefficients.C[:12]
     E3 = dop853_coefficients.E3
