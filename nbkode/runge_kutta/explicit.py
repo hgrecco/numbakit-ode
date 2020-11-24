@@ -87,10 +87,7 @@ class FSAL(AdaptiveRungeKutta, ERK, abstract=True):
         step_update = cls._step_update
 
         @numba.njit
-        def _step(t_bound, rhs, cache, h, K, options):
-            if cache.t + h > t_bound:
-                return False
-
+        def _step(rhs, cache, h, K, options):
             while True:
                 t, y = fixed_step(rhs, cache, h, K)
                 error = step_error(h, K, E)
@@ -98,8 +95,6 @@ class FSAL(AdaptiveRungeKutta, ERK, abstract=True):
                 if step_update(error_norm, h, options, error_exponent):
                     cache.push(t, y, K[-1])
                     break
-
-            return True
 
         return _step
 
@@ -291,10 +286,7 @@ class DOP853(FSAL):
         step_update = cls._step_update
 
         @numba.njit
-        def _step(t_bound, rhs, cache, h, K, options):
-            if cache.t + h > t_bound:
-                return False
-
+        def _step(rhs, cache, h, K, options):
             while True:
                 t, y = fixed_step(rhs, cache, h, K)
                 err5 = step_error(h, K, E5)
@@ -305,7 +297,5 @@ class DOP853(FSAL):
                 if step_update(error_norm, h, options, error_exponent):
                     cache.push(t, y, K[-1])
                     break
-
-            return True
 
         return _step

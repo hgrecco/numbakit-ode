@@ -167,7 +167,18 @@ class Solver(ABC, metaclass=MetaSolver):
             cls.SOLVERS_BY_GROUP[cls.GROUP].append(cls)
 
             cls._fixed_step = staticmethod(cls._fixed_step_builder())
-            cls._step = staticmethod(cls._step_builder())
+
+            step = cls._step_builder()
+
+            @numba.njit
+            def _step(t_bound, rhs, cache, h, *args):
+                if cache.t + h > t_bound:
+                    return False
+                else:
+                    step(rhs, cache, h, *args)
+                    return True
+
+            cls._step = staticmethod(_step)
 
     @classmethod
     @abstractmethod
@@ -386,13 +397,12 @@ class Solver(ABC, metaclass=MetaSolver):
 
     @staticmethod
     @abstractmethod
-    def _step(t_bound, rhs, cache, *args) -> int:
+    def _step(t_bound, rhs, cache, h, *args) -> bool:
         """Perform one integration step."""
-        raise NotImplementedError
 
     @property
     def _step_args(self):
-        return self.rhs, self.cache
+        return self.rhs, self.cache, self.h
 
     @staticmethod
     @numba.njit

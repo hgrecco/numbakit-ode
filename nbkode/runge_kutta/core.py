@@ -35,13 +35,9 @@ class RungeKutta(Solver, abstract=True):
         fixed_step = cls._fixed_step
 
         @numba.njit
-        def _step(t_bound, rhs, cache, h, K):
-            if cache.t + h > t_bound:
-                return False
-
+        def _step(rhs, cache, h, K):
             t, y = fixed_step(rhs, cache, h, K)
             cache.push(t, y, rhs(t, y))
-            return True
 
         return _step
 
