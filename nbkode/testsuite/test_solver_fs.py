@@ -21,6 +21,11 @@ solvers_i = nbkode.get_solvers(implicit=True, fixed_step=True)
 solvers_e = nbkode.get_solvers(implicit=False, fixed_step=True)
 solvers = nbkode.get_solvers(fixed_step=True, multistep=True)
 
+solvers = [
+    nbkode.AdamsBashforth5,
+    nbkode.AdamsMoulton5,
+    nbkode.BDF6,
+]
 
 y0_1 = np.atleast_1d(1.0)
 y0_2 = np.atleast_1d([1.0, 2.0])
