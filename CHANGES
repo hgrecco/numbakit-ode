@@ -4,7 +4,11 @@ numbakit-ode Changelog
 0.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Moved t_bound check to Solver class.
+- Created ALIAS API to allow multiple names for solvers while keeping 
+  a preferred one.
+- Changed import system in module.. 
+- Reorganized solvers into multistep and rungekutta.
 
 
 0.3 (2020-11-15)
