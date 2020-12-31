@@ -500,3 +500,31 @@ def newton_hd(
     if flag is not NewtonEnum.OK:
         raise RuntimeError
     return y
+
+
+@numba.njit()
+def bisect(fun, left, right, tol=1.48e-8, maxiter=50, rtol=0.0, args=()):
+    if not left < right:
+        raise ValueError("In bisect, 'left' must be smaller than 'rigth'.")
+    yl = fun(left, *args)
+    if yl == 0:
+        return left
+    yr = fun(right, *args)
+    if yr == 0:
+        return right
+    if not yl * yr < 0:
+        raise ValueError(
+            "In bisect, 'fun(left, *args)' must have and opposite sign to 'fun(right, *args)'."
+        )
+
+    for _ in range(maxiter):
+        mid = (left + right) / 2
+        ym = fun(mid, *args)
+        if isclose(ym, 0, rtol=rtol, atol=tol):
+            break
+        if np.sign(ym) == np.sign(yl):
+            left, yl = mid, ym
+        else:
+            right, yr = mid, ym
+
+    return mid
