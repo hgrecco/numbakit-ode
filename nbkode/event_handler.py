@@ -169,7 +169,7 @@ class Event:
     def last_event(self):
         if self.t:
             return self.t[-1], self.y[-1]
-        return np.nan, np.nan
+        return np.nan, np.empty(0) * np.nan
 
 
 if NO_NUMBA:
@@ -177,7 +177,10 @@ if NO_NUMBA:
 else:
     _EVENT_HANDLER_SPEC = [
         ("events", numba.types.ListType(Event.class_type.instance_type)),
-        ("last_event", numba.types.Tuple((numba.types.float64, numba.types.float64))),
+        (
+            "last_event",
+            numba.types.Tuple((numba.types.float64, numba.types.float64[:])),
+        ),
     ]
 
 
@@ -195,7 +198,7 @@ class EventHandler:
 
     def __init__(self, events):
         self.events = events
-        self.last_event = np.nan, np.nan
+        self.last_event = np.nan, np.empty(0) * np.nan
 
     def evaluate(self, interpolate, rhs, cache, *args):
         """

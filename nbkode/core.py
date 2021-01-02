@@ -328,7 +328,7 @@ class Solver(ABC, metaclass=MetaSolver):
         ValueError
             One of the timepoints provided is outside the valid range.
         """
-        return self.run_events(t, None)
+        return self.run_events(t, None)[:2]
 
     def run_events(
         self,
