@@ -117,21 +117,16 @@ class Solver(ABC, metaclass=MetaSolver):
         # TODO: check if it is jitted or njitted. Not sure if this is possible
         # if it has not been executed.
         if not is_jitted(rhs):
-            rhs = numba.njit()(rhs)
+            rhs = numba.njit(rhs)
 
         # TODO: A better way to make it partial?
         if params is None:
             self.rhs = rhs
         else:
-
-            @numba.njit()
-            def _rhs(t, y):
-                return rhs(t, y, params)
-
-            self.rhs = _rhs
+            self.rhs = numba.njit(lambda t, y: rhs(t, y, params))
 
         if h is not None:  # It might be set automatically
-            self.h = np.array(h)
+            self.h = np.array(h, dtype=float)
 
         t0 = float(t0)
         y0 = np.array(y0, dtype=float, ndmin=1)
@@ -574,24 +569,24 @@ class VariableStep:
     options: VariableStepOptions
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.options = VariableStepOptions(
             **{k: kwargs.pop(k) for k in variable_step_options if k in kwargs}
         )
-
+        h = kwargs.pop("first_step", None)
+        super().__init__(*args, **kwargs)
         validate_max_step(self.options.max_step)
         validate_tol(self.options.rtol, self.options.atol, self.y.size)
-
-        h = select_initial_step(
-            self.rhs,
-            self.t,
-            self.y,
-            self.f,
-            1,
-            self.error_estimator_order,
-            self.options.rtol,
-            self.options.atol,
-        )
+        if h is None:
+            h = select_initial_step(
+                self.rhs,
+                self.t,
+                self.y,
+                self.f,
+                1,
+                self.error_estimator_order,
+                self.options.rtol,
+                self.options.atol,
+            )
         self.h = np.array(h, dtype=float)
 
 
