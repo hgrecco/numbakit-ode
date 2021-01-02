@@ -31,14 +31,14 @@ else:
 
 
 @numba.njit()
-def event_at_sol(t, event, interpolate, rhs, cache, *args):
+def event_at_sol(t, func, interpolate, rhs, cache, *args):
     """Helper function to find the root for the event function along the solution.
 
     Parameters
     ----------
     t : float
         timepoint
-    event : callable
+    func : callable
         jitted event function.
     interpolate : callable
         jitted interpolation function of the solution
@@ -54,7 +54,7 @@ def event_at_sol(t, event, interpolate, rhs, cache, *args):
     float
 
     """
-    return event(t, interpolate(t, rhs, cache, *args))
+    return func(t, interpolate(t, rhs, cache, *args))
 
 
 # TODO: Remove this UGLY HACK
@@ -165,14 +165,19 @@ class Event:
 
         return trigger and self.is_terminal
 
+    @property
+    def last_event(self):
+        if self.t:
+            return self.t[-1], self.y[-1]
+        return np.nan, np.nan
+
 
 if NO_NUMBA:
-    _event = None
     _EVENT_HANDLER_SPEC = None
 else:
-    _event = Event(_dummy_event, True, 1, 0.0, np.zeros(0, dtype=np.float64))
     _EVENT_HANDLER_SPEC = [
-        ("events", numba.types.ListType(_event._numba_type_)),
+        ("events", numba.types.ListType(Event.class_type.instance_type)),
+        ("last_event", numba.types.Tuple((numba.types.float64, numba.types.float64))),
     ]
 
 
@@ -190,6 +195,7 @@ class EventHandler:
 
     def __init__(self, events):
         self.events = events
+        self.last_event = np.nan, np.nan
 
     def evaluate(self, interpolate, rhs, cache, *args):
         """
@@ -212,8 +218,13 @@ class EventHandler:
         """
 
         terminate = False
+        min_t = -np.inf
         for ndx, event in enumerate(self.events):
-            terminate = terminate or event.evaluate(interpolate, rhs, cache, *args)
+            if event.evaluate(interpolate, rhs, cache, *args):
+                terminate = True
+                t, y = event.last_event
+                if t > min_t:
+                    self.last_event = t, y
 
         return terminate
 
@@ -224,7 +235,7 @@ def build_handler(events: Iterable[Callable], t: float, y: ndarray) -> EventHand
     if callable(events):
         events = (events,)
 
-    evs = _empty_list(_event)
+    evs = TypedList()
 
     if events is not None:
         for ndx, event in enumerate(events):
