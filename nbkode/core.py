@@ -631,7 +631,9 @@ class Solver(ABC, metaclass=MetaSolver):
                 if not step(t_bound, rhs, cache, *args):
                     return t_eval[:ndx], y_out[:ndx], True
                 if event_handler.evaluate(interpolate, rhs, cache, *args):
-                    return t_eval[:ndx], y_out[:ndx], True
+                    # Append termination value.
+                    t_eval[ndx], y_out[ndx] = event_handler.last_event
+                    return t_eval[: ndx + 1], y_out[: ndx + 1], True
             y_out[ndx] = interpolate(ti, rhs, cache, *args)
 
         return t_eval, y_out, False
