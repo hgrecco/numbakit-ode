@@ -18,6 +18,10 @@ allowing for easy migration.
 It runs in Python 3.7+ depending on NumPy_, SciPy_ and Numba_.
 It is licensed under BSD.
 
+.. testsetup::
+
+        import nbkode
+
 It is extremely easy and natural to use:
 
 .. code-block:: python
