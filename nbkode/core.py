@@ -99,6 +99,11 @@ class Solver(ABC, metaclass=MetaSolver):
     _fixed_step_builder: Callable
     _step_builder: Callable
 
+    #: Define which interpolator should be used
+    #: None -> self._interpolate
+    #: Other -> other.evaluate
+    _interpolator = None
+
     def __init__(
         self,
         rhs: Callable,
