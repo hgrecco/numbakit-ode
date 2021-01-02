@@ -328,52 +328,12 @@ class Solver(ABC, metaclass=MetaSolver):
         ValueError
             One of the timepoints provided is outside the valid range.
         """
-        t = np.atleast_1d(t)
-
-        is_t_sorted = t.size == 1 or np.all(t[:-1] <= t[1:])
-
-        if not is_t_sorted:
-            ndx = np.argsort(t)
-            t = t[ndx]
-
-        if t[0] < self.cache.ts[0]:
-            raise ValueError(
-                f"Cannot interpolate at t={t[0]} as it is smaller "
-                f"than the current smallest value in history ({self.cache.ts[0]})"
-            )
-
-        self._check_time(np.max(t))
-
-        to_interpolate = t <= self.t
-        is_to_interpolate = np.any(to_interpolate)
-        if is_to_interpolate:
-            t_old = t[to_interpolate]
-            y_old = np.asarray([self.interpolate(_t) for _t in t_old])
-            t_to_run = t[np.logical_not(to_interpolate)]
-        else:
-            t_to_run = t
-
-        # t_bound will not be reached a it due to validation in _check_time
-        ts, ys, scon = self._run_eval(
-            self.t_bound,
-            t_to_run,
-            self._step,
-            self._interpolate,
-            *self._step_args,
-        )
-
-        if is_to_interpolate:
-            ts = np.concatenate((t_old, ts))
-            ys = np.concatenate((y_old, ys))
-
-        if is_t_sorted:
-            return ts, ys
-
-        ondx = np.argsort(ndx)
-        return ts[ondx], ys[ondx]
+        return self.run_events(t, None)
 
     def run_events(
-        self, t: Union[Real, np.ndarray], events: Union[Callable, Iterable[Callable]]
+        self,
+        t: Union[Real, np.ndarray],
+        events: Optional[Union[Callable, Iterable[Callable]]],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Integrates the ODE interpolating at each of the timepoints `t`.
 
