@@ -154,18 +154,18 @@ class RungeKutta23(FSAL):
 class RungeKutta45(FSAL):
     """Explicit Runge-Kutta method of order 5(4).
 
-    This uses the Dormand-Prince pair of formulas [1]_. The error is controlled
+    This uses the Dormand-Prince pair of formulas [2]_. The error is controlled
     assuming accuracy of the fourth-order method accuracy, but steps are taken
     using the fifth-order accurate formula (local extrapolation is done).
-    A quartic interpolation polynomial is used for the dense output [2]_.
+    A quartic interpolation polynomial is used for the dense output [3]_.
     Can be applied in the complex domain.
 
     References
     ----------
-    .. [1] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
+    .. [2] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
            formulae", Journal of Computational and Applied Mathematics, Vol. 6,
            No. 1, pp. 19-26, 1980.
-    .. [2] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
+    .. [3] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
            of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
     """
 
@@ -182,7 +182,7 @@ class RungeKutta45(FSAL):
     B = np.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84])
     C = np.array([0, 1 / 5, 3 / 10, 4 / 5, 8 / 9, 1])
 
-    # Corresponds to the optimum value of c_6 from [2]_.
+    # Corresponds to the optimum value of c_6 from [3]_.
     P = np.array(
         [
             [
