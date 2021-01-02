@@ -421,7 +421,7 @@ class Solver(ABC, metaclass=MetaSolver):
         ValueError
             One of the timepoints provided is outside the valid range.
         """
-        t = np.atleast_1d(t)
+        t = np.atleast_1d(t).astype(np.float64)
 
         is_t_sorted = t.size == 1 or np.all(t[:-1] <= t[1:])
 
