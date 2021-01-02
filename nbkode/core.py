@@ -127,6 +127,8 @@ class Solver(ABC, metaclass=MetaSolver):
 
         if h is not None:  # It might be set automatically
             self.h = np.array(h, dtype=float)
+        elif not hasattr(self, "h"):  # TODO: Make it better.
+            self.h = 1
 
         t0 = float(t0)
         y0 = np.array(y0, dtype=float, ndmin=1)

@@ -44,28 +44,28 @@ It is extremely easy and natural to use:
     ...     return -0.1 * y
     >>> t0 = 0.
     >>> y0 = 1.
-    >>> solver = nbkode.Euler(func, t0, y0)
-    >>> ts, ys = sol.run([0., 5, 10])
+    >>> solver = nbkode.ForwardEuler(func, t0, y0)
+    >>> ts, ys = solver.run([0., 5., 10.])
 
 You can get a list of all solvers:
 
-.. code-block:: python
+.. code-block:: python python
 
     >>> import nbkode
-    >>> nbkode.get_solvers()
+    >>> nbkode.get_solvers() #doctest: +SKIP
 
 or filter by characteristics or group name (or names).
 
-.. code-block:: python
+.. code-block:: python python
 
-    >>> nbkode.get_solvers(implicit=False, fixed_step=True)
-    >>> nbkode.get_solvers('euler', 'adam-bashforth')
+    >>> nbkode.get_solvers(implicit=False, fixed_step=True) #doctest: +SKIP
+    >>> nbkode.get_solvers('euler', 'adam-bashforth') #doctest: +SKIP
 
 
 Quick Installation
 ------------------
 
-To install numbakit-ode, simply:
+To install numbakit-ode, simply (*soon*):
 
 .. code-block:: bash
 
@@ -80,30 +80,16 @@ or utilizing conda, with the conda-forge channel (*soon*):
 and then simply enjoy it!
 
 
-Documentation
--------------
-
-Full documentation is available at http://numbakit-ode.readthedocs.org/
-
-
-Testing
--------
-
-We use pytest_. To run the testsuite:
-
-.. code-block:: bash
-
-    $ pytest .
-
-
-Benchmarks
+User Guide
 ----------
 
-We use `airspeed velocity`_. To run it during development:
+.. toctree::
+    :maxdepth: 1
 
-.. code-block:: bash
-
-    $ PYTHONPATH=`pwd` asv dev
+    getting
+    tutorial
+    faq
+    developers_reference
 
 
 
