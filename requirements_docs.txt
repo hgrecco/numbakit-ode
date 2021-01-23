@@ -1,0 +1,9 @@
+matplotlib
+nbsphinx
+pytest
+graphviz
+setuptools>=41.2
+pygments>=2.4
+numpy
+scipy
+numba
