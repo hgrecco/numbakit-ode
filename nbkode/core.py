@@ -12,9 +12,10 @@
 
 from __future__ import annotations
 
+import warnings
 from abc import ABC, ABCMeta, abstractmethod
 from numbers import Real
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Iterable, Optional, Tuple, Union
 
 import numpy as np
 from scipy.integrate._ivp.common import (
@@ -23,6 +24,7 @@ from scipy.integrate._ivp.common import (
     validate_tol,
 )
 
+from . import event_handler
 from .buffer import AlignedBuffer
 from .nbcompat import is_jitted, numba
 from .util import CaseInsensitiveDict
@@ -323,7 +325,60 @@ class Solver(ABC, metaclass=MetaSolver):
         ValueError
             One of the timepoints provided is outside the valid range.
         """
-        t = np.atleast_1d(t)
+        return self.run_events(t, None)[:2]
+
+    def run_events(
+        self,
+        t: Union[Real, np.ndarray],
+        events: Optional[Union[Callable, Iterable[Callable]]],
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Integrates the ODE interpolating at each of the timepoints `t`.
+
+        (events follows the SciPy `solve_ivp` API)
+
+        Parameters
+        ----------
+        t : float or array-like
+        events : callable, or list of callables (length N)
+            Events to track. If None (default), no events will be tracked.
+            Each event occurs at the zeros of a continuous function of time and
+            state. Each function must have the signature ``event(t, y)`` and return
+            a float. The solver will find an accurate value of `t` at which
+            ``event(t, y(t)) = 0`` using a root-finding algorithm. By default, all
+            zeros will be found. The solver looks for a sign change over each step,
+            so if multiple zero crossings occur within one step, events may be
+            missed. Additionally each `event` function might have the following
+            attributes:
+                terminal: bool, optional
+                    Whether to terminate integration if this event occurs.
+                    Implicitly False if not assigned.
+                direction: float, optional
+                    Direction of a zero crossing. If `direction` is positive,
+                    `event` will only trigger when going from negative to positive,
+                    and vice versa if `direction` is negative. If 0, then either
+                    direction will trigger event. Implicitly 0 if not assigned.
+            You can assign attributes like ``event.terminal = True`` to any
+            function in Python.
+
+        Returns
+        -------
+        t : ndarray, shape (n_points,)
+            Time points.
+        y : ndarray, shape (n, n_points)
+            Values of the solution at `t`.
+        t_events : list of ndarray (length N)
+            Contains for each event type a list of arrays at which an event of
+            that type event was detected. Empty list if no `events`.
+        y_events : list of ndarray (length N)
+            For each value of `t_events`, the corresponding value of the solution.
+            Empty list if no `events`.
+
+        Raises
+        ------
+        ValueError
+            One of the timepoints provided is outside the valid range.
+        """
+        t = np.atleast_1d(t).astype(np.float64)
 
         is_t_sorted = t.size == 1 or np.all(t[:-1] <= t[1:])
 
@@ -349,23 +404,43 @@ class Solver(ABC, metaclass=MetaSolver):
             t_to_run = t
 
         # t_bound will not be reached a it due to validation in _check_time
-        ts, ys, scon = self._run_eval(
-            self.t_bound,
-            t_to_run,
-            self._step,
-            self._interpolate,
-            *self._step_args,
-        )
+        if events:
+            eh = event_handler.build_handler(events, self.t, self.y)
+            ts, ys, scon = self._run_eval_events(
+                self.t_bound,
+                t_to_run,
+                self._step,
+                eh,
+                self._interpolate,
+                *self._step_args,
+            )
+
+            # We cast here to a Python List to avoid exposing a Numbatype
+            t_events = [list(event.t) for event in eh.events]
+            y_events = [list(event.y) for event in eh.events]
+        else:
+            ts, ys, scon = self._run_eval(
+                self.t_bound,
+                t_to_run,
+                self._step,
+                self._interpolate,
+                *self._step_args,
+            )
+            t_events = []
+            y_events = []
 
         if is_to_interpolate:
             ts = np.concatenate((t_old, ts))
             ys = np.concatenate((y_old, ys))
 
+            if events:
+                warnings.warning("Events for past events are not implemented yet.")
+
         if is_t_sorted:
-            return ts, ys
+            return ts, ys, t_events, y_events
 
         ondx = np.argsort(ndx)
-        return ts[ondx], ys[ondx]
+        return ts[ondx], ys[ondx], t_events, y_events
 
     def interpolate(self, t: float) -> float:
         """Interpolate solution at t.
@@ -528,6 +603,34 @@ class Solver(ABC, metaclass=MetaSolver):
             while cache.t < ti:
                 if not step(t_bound, rhs, cache, *args):
                     return t_eval[:ndx], y_out[:ndx], True
+            y_out[ndx] = interpolate(ti, rhs, cache, *args)
+
+        return t_eval, y_out, False
+
+    @staticmethod
+    @numba.njit
+    def _run_eval_events(
+        t_bound: float,
+        t_eval: np.ndarray,
+        step,
+        event_handler: event_handler.EventHandler,
+        interpolate,
+        rhs,
+        cache,
+        *args,
+    ) -> tuple[np.ndarray, np.ndarray, bool]:
+        """Run up to t, evaluating y at given t and return (t, y) as arrays."""
+
+        y_out = np.empty((t_eval.size, cache.y.size))
+
+        for ndx, ti in enumerate(t_eval):
+            while cache.t < ti:
+                if not step(t_bound, rhs, cache, *args):
+                    return t_eval[:ndx], y_out[:ndx], True
+                if event_handler.evaluate(interpolate, rhs, cache, *args):
+                    # Append termination value.
+                    t_eval[ndx], y_out[ndx] = event_handler.last_event
+                    return t_eval[: ndx + 1], y_out[: ndx + 1], True
             y_out[ndx] = interpolate(ti, rhs, cache, *args)
 
         return t_eval, y_out, False

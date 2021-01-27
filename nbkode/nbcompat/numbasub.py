@@ -43,6 +43,7 @@ jit = __noop
 jitclass = __noop
 njit = __noop
 vectorize = __noop
+typeof = __noop
 
 
 class WithGetItem:
