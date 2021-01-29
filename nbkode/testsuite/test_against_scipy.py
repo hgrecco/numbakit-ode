@@ -81,3 +81,14 @@ def test_exponential2(nbkode_cls, scipy_cls):
         assert_allclose(nbkode_sol.f, scipy_sol.f, err_msg=msg)
         assert_allclose(nbkode_sol.h, scipy_sol.h_abs, err_msg=msg)
         assert_allclose(nbkode_sol.K, scipy_sol.K, err_msg=msg)
+
+
+@pytest.mark.parametrize("nbkode_cls, scipy_cls", equivalents)
+def test_interpolate(nbkode_cls, scipy_cls):
+    t_eval = np.linspace(0, 300, 160)
+    nb_t, nb_y = nbkode_cls(exponential2, 0, y0_2, t_bound=500).run(t_eval)
+    scipy_sol = integrate.solve_ivp(
+        exponential2, [0, 500], y0_2, t_eval=t_eval, method=scipy_cls.__name__
+    )
+    assert_allclose(nb_t, scipy_sol.t)
+    assert_allclose(nb_y, scipy_sol.y.T)
