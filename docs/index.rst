@@ -75,6 +75,7 @@ User Guide
 
     getting
     tutorial
+    events
     faq
     developers_reference
 

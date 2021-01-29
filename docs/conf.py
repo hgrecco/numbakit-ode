@@ -11,6 +11,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import warnings
+
+import numba
+
+warnings.filterwarnings("ignore", category=numba.NumbaExperimentalFeatureWarning)
+
 import datetime
 
 try:
