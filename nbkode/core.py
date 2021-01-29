@@ -579,15 +579,23 @@ class Solver(ABC, metaclass=MetaSolver):
     @staticmethod
     @numba.njit()
     def _interpolate(t_eval, rhs, cache, *args):
-        """Interpolate solution at t_eval"""
-        if not (cache.ts[0] <= t_eval <= cache.t):
-            raise ValueError("Time to interpolate outside range")
+        """Interpolate solution at t_eval.
 
-        y_out = np.empty(cache.y.size)
-        for ndx in range(len(y_out)):
-            y_out[ndx] = np.interp(t_eval, cache.ts, cache.ys[:, ndx])
+        Does not check that t_eval is valid, that is, that it is not extrapolating.
+        """
+        t0, y0 = cache.ts[0], cache.ys[0]
+        if t_eval == t0:
+            return y0
 
-        return y_out
+        dt, dy = cache.t - t0, cache.y - y0
+        f0, f1 = cache.fs[0], cache.f
+
+        T = (t_eval - t0) / dt
+        return (
+            y0
+            + T * dy
+            + T * (T - 1) * ((1 - 2 * T) * dy + dt * ((T - 1) * f0 + T * f1))
+        )
 
     @staticmethod
     @numba.njit
