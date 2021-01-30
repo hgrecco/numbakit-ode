@@ -76,6 +76,7 @@ User Guide
     getting
     tutorial
     events
+    migration
     faq
     developers_reference
 
