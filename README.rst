@@ -82,19 +82,6 @@ or utilizing conda, with the conda-forge channel (*soon*):
 and then simply enjoy it!
 
 
-User Guide
-----------
-
-.. toctree::
-    :maxdepth: 1
-
-    getting
-    tutorial
-    faq
-    developers_reference
-
-
-
 Design principles
 -----------------
 
