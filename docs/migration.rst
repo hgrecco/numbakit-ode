@@ -26,7 +26,7 @@ few extra parameters but the defaults match the SciPy semantics)
   LSODA       N/A
 ======== ==============
 
-* We provide BDF, with N=1 to 5
+(*) We provide BDF, with N=1 to 5
 N/A: not available (yet :-))
 
 All extra parameters can be given as named arguments using the same
@@ -42,7 +42,8 @@ it provides feature rich solver class that you keep alive while you need it.
 
 To **run until a specific time**:
 
-.. code-block:: python
+.. doctest::
+    :options: +SKIP
 
     >>> out = solve_ivp(exponential_decay, [0, 10], [2, 4, 8])
     >>> print(out.t)
@@ -50,7 +51,8 @@ To **run until a specific time**:
 
 in numbakit-ode becomes:
 
-.. code-block:: python
+.. doctest::
+    :options: +SKIP
 
     >>> sol = nbkode.RungeKutta45(exponential_decay, 0, [2, 4, 8])
     >>> t, y = sol.run(10)
@@ -59,7 +61,8 @@ in numbakit-ode becomes:
 
 Resuming the integration in SciPy involves calling `solve_ivp` again:
 
-.. code-block:: python
+.. doctest::
+    :options: +SKIP
 
     >>> out2 = solve_ivp(exponential_decay, [out.t, 20], out.y)
     >>> print(out2.t)
@@ -72,7 +75,8 @@ evaluations of the function or jacobian) are lost.
 That is why in numbakit-ode we rather keep the solver alive and then
 call it again if necessary:
 
-.. code-block:: python
+.. doctest::
+    :options: +SKIP
 
     >>> t2, y = sol.run(10)
     >>> print(t2)
@@ -80,22 +84,32 @@ call it again if necessary:
 
 To **evaluate at specific timepoints** in SciPy:
 
-.. code-block:: python
+.. doctest::
+    :options: +SKIP
 
     >>> out = solve_ivp(exponential_decay, [0, 10], [2, 4, 8], t_eval=[0, 1, 2, 4, 10])
     
 in numbakit-ode becomes:
+
+.. doctest::
+    :options: +SKIP
 
     >>> sol = nbkode.RungeKutta45(exponential_decay, 0, [2, 4, 8])
     >>> t, y = sol.run([0, 1, 2, 4, 10])
 
 To use **events** in SciPy:
 
+.. doctest::
+    :options: +SKIP
+
     >>> out = solve_ivp(upward_cannon, [0, 100], [0, 10], events=hit_ground)
     >>> print(out.t_events)
     >>> print(out.y_events)
 
 in numbakit-ode becomes:
+
+.. doctest::
+    :options: +SKIP
 
     >>> sol = nbkode.RungeKutta45(exponential_decay, 0, [2, 4, 8])
     >>> t, y, t_events, y_events = sol.run_events(100, events=hit_ground)
