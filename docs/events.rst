@@ -18,10 +18,11 @@ using a root-finding algorithm. By default, all zeros will be found.
 
 The solver looks for a sign change over each step, so if multiple zero crossings
 occur within one step, events may be missed. Additionally each event function
-might have the following attributes::
+might have the following attributes:
+
+Whether to terminate integration if this event occurs.
 
  - **terminal**: bool, optional
-   Whether to terminate integration if this event occurs.
    Implicitly `False` if not assigned.
  - **direction**: float, optional
    Direction of a zero crossing. If direction is positive, event will only
@@ -60,7 +61,7 @@ integration never reaches t=100 because the event is terminal.
 
 `run_events` works like `run` but it has an extra argument (`events`) that
 can accept a callable (or a list of callables).
-It also has two additional outputs::
+It also has two additional outputs:
 
  - `t_events`: list of list of floats
    Contains for each callable a list of floats at which an event of
@@ -81,7 +82,8 @@ are found.
     >>> print(t_events[0]) # hit ground time  # doctest: +SKIP
     >>> print(t_events[1]) # apex time  # doctest: +SKIP
 
- .. note:: Important
+.. note:: 
+    **Important**
 
     Event callables are compiled into the tight loop that runs the simulation
     using Numba. Therefore, just like the ODE rhs, these callables **must**
