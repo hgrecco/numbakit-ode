@@ -2,18 +2,19 @@
 Migrating from SciPy
 ====================
 
-If you are have been using ScipPy to integrate ODEs, moving to numbakit-ode
+If you are have been using `SciPy` to integrate ODEs, moving to `numbakit-ode`
 is very easy.
 
 Migrating from SciPy class based API
 ------------------------------------
 
-Instantiating the solver class is the mostly the same (except for the
-class name, see table below) So `RK23(fun, t0, y0)` becomes
-`RungeKutta45(fun, t0, y0)`. The `step` method available in the SciPy
-solver instance is also available in the numbakit-ode instance
-and has the same syntax (numbakit-ode `step` method provides a
-few extra parameters but the defaults match the SciPy semantics)
+Instantiating the solver class is mostly the same (except for the
+class name, see table below). So `RK23(fun, t0, y0)` becomes
+`RungeKutta23(fun, t0, y0)`, `RK45(fun, t0, y0)` becomes
+`RungeKutta45(fun, t0, y0), and so on`. The `step` method available in the SciPy
+solver instance is also available in the `numbakit-ode` instance
+and has the same syntax (`numbakit-ode`'s `step` method provides a
+few extra parameters, but the defaults match the SciPy semantics)
 
 ======== ==============
  SciPy       nbkode
@@ -36,9 +37,9 @@ name as in SciPy.
 Migrating from SciPy solve_ivp
 ------------------------------
 
-SciPy `solve_ivp` creates a Solver instances and step through the solution
-until the desired timepoint. numbakit-ode takes a different approach:
-it provides feature rich solver class that you keep alive while you need it.
+SciPy's `solve_ivp` creates a Solver instance and steps through the solution
+until the desired time point. `numbakit-ode` takes a different approach:
+it provides a feature-rich solver class that you keep alive while you need it.
 
 To **run until a specific time**:
 
@@ -49,7 +50,7 @@ To **run until a specific time**:
     >>> print(out.t)
     >>> print(out.y)
 
-in numbakit-ode becomes:
+in `numbakit-ode` becomes:
 
 .. doctest::
     :options: +SKIP
@@ -68,11 +69,11 @@ Resuming the integration in SciPy involves calling `solve_ivp` again:
     >>> print(out2.t)
     >>> print(out2.y)
 
-but bear in mind that for some solvers this is not exactly the same as
+but bear in mind that for some solvers, this is not exactly the same as
 resuming as the internal state of the solver (which might contain previous
 evaluations of the function or jacobian) are lost.
 
-That is why in numbakit-ode we rather keep the solver alive and then
+That is why in `numbakit-ode`, we rather keep the solver alive and then
 call it again if necessary:
 
 .. doctest::
@@ -88,8 +89,8 @@ To **evaluate at specific timepoints** in SciPy:
     :options: +SKIP
 
     >>> out = solve_ivp(exponential_decay, [0, 10], [2, 4, 8], t_eval=[0, 1, 2, 4, 10])
-    
-in numbakit-ode becomes:
+
+in `numbakit-ode` becomes:
 
 .. doctest::
     :options: +SKIP
@@ -106,7 +107,7 @@ To use **events** in SciPy:
     >>> print(out.t_events)
     >>> print(out.y_events)
 
-in numbakit-ode becomes:
+in `numbakit-ode` becomes:
 
 .. doctest::
     :options: +SKIP
@@ -116,5 +117,4 @@ in numbakit-ode becomes:
     >>> print(t_events)
     >>> print(y_events)
 
-Keep in mind that in `numbakit-ode` time always move forward.
-
+Keep in mind that in `numbakit-ode`, time always move forward.
