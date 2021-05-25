@@ -46,7 +46,7 @@ or filter by characteristics or group name (or names).
 .. doctest:: python
 
     >>> nbkode.get_solvers(implicit=False, fixed_step=True) #doctest: +SKIP
-    >>> nbkode.get_solvers('euler', 'adam-bashforth') #doctest: +SKIP
+    >>> nbkode.get_solvers('euler', 'adams-bashforth') #doctest: +SKIP
 
 
 Quick Installation
