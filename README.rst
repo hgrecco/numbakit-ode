@@ -115,5 +115,5 @@ see CHANGES_
 .. _`Numba`: https://numba.pydata.org/
 .. _`pytest`: https://docs.pytest.org/
 .. _`airspeed velocity`: https://asv.readthedocs.io
-.. _`AUTHORS`: https://github.com/hgrecco/numbakit-ode/blob/master/AUTHORS
-.. _`CHANGES`: https://github.com/hgrecco/numbakit-ode/blob/master/CHANGES
+.. _`AUTHORS`: https://github.com/hgrecco/numbakit-ode/blob/main/AUTHORS
+.. _`CHANGES`: https://github.com/hgrecco/numbakit-ode/blob/main/CHANGES
