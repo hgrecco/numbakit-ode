@@ -82,6 +82,11 @@ or utilizing conda, with the conda-forge channel (*soon*):
 and then simply enjoy it!
 
 
+Documentation
+-------------
+The documentation can be found at https://numbakit-ode.readthedocs.io/en/latest/
+
+
 Design principles
 -----------------
 
