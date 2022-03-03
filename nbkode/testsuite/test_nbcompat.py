@@ -20,9 +20,9 @@ from numpy.testing import (
     assert_warns,
     suppress_warnings,
 )
-from scipy.optimize import zeros as sp_zeros
 
 from nbkode.nbcompat import numba, zeros
+from nbkode.nbcompat.zeros import zeros as sp_zeros
 
 cos = np.cos
 exp = np.exp
