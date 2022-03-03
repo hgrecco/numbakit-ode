@@ -13,7 +13,7 @@ import operator
 import warnings
 
 import numpy as np
-from scipy.optimize import zeros
+from scipy.optimize import _zeros_py as zeros
 
 from .common import isclose
 from .nb_to_import import numba
