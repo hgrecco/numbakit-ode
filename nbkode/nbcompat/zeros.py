@@ -13,7 +13,12 @@ import operator
 import warnings
 
 import numpy as np
-from scipy.optimize import _zeros_py as zeros
+
+try:
+    from scipy.optimize import _zeros_py as zeros
+except ImportError:
+    # SciPy < 1.8.0
+    from scipy.optimize import zeros
 
 from .common import isclose
 from .nb_to_import import numba
