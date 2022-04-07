@@ -51,14 +51,14 @@ It is extremely easy and natural to use:
 
 You can get a list of all solvers:
 
-.. code-block:: python python
+.. code-block:: python
 
     >>> import nbkode
     >>> nbkode.get_solvers() #doctest: +SKIP
 
 or filter by characteristics or group name (or names).
 
-.. code-block:: python python
+.. code-block:: python
 
     >>> nbkode.get_solvers(implicit=False, fixed_step=True) #doctest: +SKIP
     >>> nbkode.get_solvers('euler', 'adam-bashforth') #doctest: +SKIP
