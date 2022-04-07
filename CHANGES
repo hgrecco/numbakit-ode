@@ -4,7 +4,12 @@ numbakit-ode Changelog
 0.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Implemented events.
+- Implemented interpolator for RungeKutta23, RungeKutta45, DOP853.
+- Added NO_NUMBA variable to nbcompat.
+- Implemented bounded bisect method for root finding.
+- Several bug fixed and code clean up.
+- Improvements to the documentation, packaging and testing infrastructure.
 
 
 0.4 (2020-12-27)
