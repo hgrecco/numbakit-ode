@@ -34,7 +34,7 @@ newton = zeros.newton
 # A few test functions used frequently:
 # # A simple quadratic, (x-1)^2 - 1
 def f1(x):
-    return x ** 2 - 2 * x - 1
+    return x**2 - 2 * x - 1
 
 
 def f1_1(x):
@@ -65,7 +65,7 @@ def f2_2(x):
 class TestNewton:
     @staticmethod
     def f1(x):
-        return x ** 2 - 2 * x - 1  # == (x-1)**2 - 2
+        return x**2 - 2 * x - 1  # == (x-1)**2 - 2
 
     @staticmethod
     def f1_1(x):
@@ -114,7 +114,7 @@ class TestNewton:
 
         def f1_2(x, *a):
             b = a[3] / a[5]
-            return -a[2] * np.exp(a[0] / a[5] + x * b) * b ** 2
+            return -a[2] * np.exp(a[0] / a[5] + x * b) * b**2
 
         a0 = np.array(
             [
@@ -182,10 +182,10 @@ class TestNewton:
 
     def test_array_newton_integers(self):
         # test secant with float
-        x = zeros.newton(lambda y, z: z - y ** 2, [4.0] * 2, args=([15.0, 17.0],))
+        x = zeros.newton(lambda y, z: z - y**2, [4.0] * 2, args=([15.0, 17.0],))
         assert_allclose(x, (3.872983346207417, 4.123105625617661))
         # test integer becomes float
-        x = zeros.newton(lambda y, z: z - y ** 2, [4] * 2, args=([15, 17],))
+        x = zeros.newton(lambda y, z: z - y**2, [4] * 2, args=([15, 17],))
         assert_allclose(x, (3.872983346207417, 4.123105625617661))
 
     def test_array_newton_zero_der_failures(self):
@@ -193,14 +193,14 @@ class TestNewton:
         assert_warns(
             RuntimeWarning,
             zeros.newton,
-            lambda y: y ** 2 - 2,
+            lambda y: y**2 - 2,
             [0.0, 0.0],
             lambda y: 2 * y,
         )
         # test failures and zero_der
         with pytest.warns(RuntimeWarning):
             results = zeros.newton(
-                lambda y: y ** 2 - 2, [0.0, 0.0], lambda y: 2 * y, full_output=True
+                lambda y: y**2 - 2, [0.0, 0.0], lambda y: 2 * y, full_output=True
             )
             assert_allclose(results.root, 0)
             assert results.zero_der.all()
@@ -249,7 +249,7 @@ class TestNewton:
                     x, r = zeros.newton(self.f1, x0, maxiter=iters, disp=True, **kwargs)
 
     def test_deriv_zero_warning(self):
-        func = lambda x: x ** 2 - 2.0
+        func = lambda x: x**2 - 2.0
         dfunc = lambda x: 2 * x
         assert_warns(RuntimeWarning, zeros.newton, func, 0.0, dfunc, disp=False)
         with pytest.raises(RuntimeError, match="Derivative was zero"):
@@ -276,7 +276,7 @@ def test_complex_halley():
     """Test Halley's works with complex roots"""
 
     def f(x, *a):
-        return a[0] * x ** 2 + a[1] * x + a[2]
+        return a[0] * x**2 + a[1] * x + a[2]
 
     def f_1(x, *a):
         return 2 * a[0] * x + a[1]
@@ -378,7 +378,7 @@ def test_gh8904_zeroder_at_root_fails():
 
     # a function that has a zero derivative at it's root
     def f_zeroder_root(x):
-        return x ** 3 - x ** 2
+        return x**3 - x**2
 
     # should work with secant
     r = zeros.newton(f_zeroder_root, x0=0)
@@ -389,7 +389,7 @@ def test_gh8904_zeroder_at_root_fails():
 
     # 1st derivative
     def fder(x):
-        return 3 * x ** 2 - 2 * x
+        return 3 * x**2 - 2 * x
 
     # 2nd derivative
     def fder2(x):
@@ -452,7 +452,7 @@ def test_gh_9608_preserve_array_shape():
     """
 
     def f(x):
-        return x ** 2
+        return x**2
 
     def fp(x):
         return 2 * x
@@ -506,7 +506,7 @@ from scipy.optimize import root
 def test_ndnewton():
     @numba.njit()
     def fff(x):
-        return x ** 2.0 - 10.0
+        return x**2.0 - 10.0
 
     fff(0.0)
     y0 = np.asarray([1.0, 1.0, 1.0])

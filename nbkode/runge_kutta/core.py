@@ -94,7 +94,7 @@ class AdaptiveRungeKutta(VariableStep, RungeKutta, abstract=True):
             h *= options.max_factor
             return True  # step accepted
 
-        factor = options.safety_factor / error_norm ** error_exponent
+        factor = options.safety_factor / error_norm**error_exponent
         h *= min(options.max_factor, max(options.min_factor, factor))
         return error_norm < 1
 

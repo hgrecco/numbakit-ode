@@ -14,12 +14,12 @@ from nbkode.nbcompat.zeros import _j_newton as j_newton
 
 @njit
 def func(x):
-    return x ** 3 - 1
+    return x**3 - 1
 
 
 @njit
 def fprime(x):
-    return 3 * x ** 2
+    return 3 * x**2
 
 
 @njit
