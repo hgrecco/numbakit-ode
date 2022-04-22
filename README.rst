@@ -82,6 +82,11 @@ or utilizing conda, with the conda-forge channel (*soon*):
 and then simply enjoy it!
 
 
+Documentation
+-------------
+The documentation can be found at https://numbakit-ode.readthedocs.io/en/latest/
+
+
 Design principles
 -----------------
 
@@ -115,5 +120,5 @@ see CHANGES_
 .. _`Numba`: https://numba.pydata.org/
 .. _`pytest`: https://docs.pytest.org/
 .. _`airspeed velocity`: https://asv.readthedocs.io
-.. _`AUTHORS`: https://github.com/hgrecco/numbakit-ode/blob/master/AUTHORS
-.. _`CHANGES`: https://github.com/hgrecco/numbakit-ode/blob/master/CHANGES
+.. _`AUTHORS`: https://github.com/hgrecco/numbakit-ode/blob/main/AUTHORS
+.. _`CHANGES`: https://github.com/hgrecco/numbakit-ode/blob/main/CHANGES

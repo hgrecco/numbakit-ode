@@ -14,7 +14,7 @@ is `conda`:
 
 Then you can install it (or upgrade to the latest version) using pip_::
 
-    $ pip install -U nbkode
+    $ pip install -U numbakit-ode
 
 or with conda, with the conda-forge channel (*soon*):
 
