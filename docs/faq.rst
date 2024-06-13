@@ -74,5 +74,3 @@ code.
 .. _`SciPy Integrate`: https://docs.scipy.org/doc/scipy/reference/integrate.html
 .. _`Numba`: https://numba.pydata.org/
 .. _`benchmarks`: https://hgrecco.github.io/numbakit-ode/
-
-

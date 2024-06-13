@@ -1,9 +1,9 @@
 """
-    benchmarks.nbcompat
-    ~~~~~~~~~~~~~~~~~~~
+benchmarks.nbcompat
+~~~~~~~~~~~~~~~~~~~
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from numba import njit
@@ -35,7 +35,6 @@ def njit_newton(func, x0, fprime):
 
 
 class Suite:
-
     param_names = "variant", "numba"
     params = (["scipy", "simple", "nbkode"], [True, False])
 

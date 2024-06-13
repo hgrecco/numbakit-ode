@@ -1,11 +1,11 @@
 """
-    nbkode.nbcompat.newton
-    ~~~~~~~~~~~~~~~~~~~~~~
+nbkode.nbcompat.newton
+~~~~~~~~~~~~~~~~~~~~~~
 
-    Newton methods.
+Newton methods.
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import enum
@@ -240,7 +240,6 @@ def newton(
     )
 
     if my_flag is not NewtonEnum.OK:
-
         if my_flag is NewtonEnum.DERIVATIVE_WAS_ZERO:
             msg = "Derivative was zero."
         elif my_flag is NewtonEnum.TOLERANCE_REACHED:
@@ -440,7 +439,6 @@ def j_newton(
 
 @numba.njit()
 def jacobian(func, x, args=()):
-
     eps = 1e-10
     J = np.zeros((len(x), len(x)), dtype=np.float64)
 

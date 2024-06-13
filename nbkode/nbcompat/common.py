@@ -1,11 +1,11 @@
 """
-    nbkode.nbcompat.common
-    ~~~~~~~~~~~~~~~~~~~~~~
+nbkode.nbcompat.common
+~~~~~~~~~~~~~~~~~~~~~~
 
-    Common methods.
+Common methods.
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import numpy as np

@@ -1,14 +1,14 @@
 """
-    nbkode.testsuite.solver_fs
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+nbkode.testsuite.solver_fs
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Test fixed step solvers for:
-    - argument handling
-    - jittability
-    - running different methods.
+Test fixed step solvers for:
+- argument handling
+- jittability
+- running different methods.
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import numpy as np
@@ -41,7 +41,6 @@ def f2(t, x, k):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_f1(solver):
-
     solver = solver(f1, 0.0, y0_1, params=(0.01,), h=0.01)
     solver.skip(upto_t=10)
 
@@ -51,7 +50,6 @@ def test_f1(solver):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_f2(solver):
-
     solver = solver(f2, 0.0, y0_2, params=(0.01, 0.05), h=0.01)
     solver.skip(upto_t=10)
 

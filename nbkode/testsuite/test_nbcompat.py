@@ -1,14 +1,13 @@
 """
-    nbkode.testsuite.test_nbcompat
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nbkode.testsuite.test_nbcompat
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Test for non-trivial implementation of python/numpy/scipy functions
-    which are not njitable (yet).
+Test for non-trivial implementation of python/numpy/scipy functions
+which are not njitable (yet).
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
-
 
 import numpy as np
 import pytest
@@ -20,7 +19,7 @@ from numpy.testing import (
     assert_warns,
     suppress_warnings,
 )
-
+from scipy.optimize import root
 from nbkode.nbcompat import numba, zeros
 from nbkode.nbcompat.zeros import zeros as sp_zeros
 
@@ -249,8 +248,12 @@ class TestNewton:
                     x, r = zeros.newton(self.f1, x0, maxiter=iters, disp=True, **kwargs)
 
     def test_deriv_zero_warning(self):
-        func = lambda x: x**2 - 2.0
-        dfunc = lambda x: 2 * x
+        def func(x):
+            return x**2 - 2.0
+
+        def dfunc(x):
+            return 2 * x
+
         assert_warns(RuntimeWarning, zeros.newton, func, 0.0, dfunc, disp=False)
         with pytest.raises(RuntimeError, match="Derivative was zero"):
             zeros.newton(func, 0.0, dfunc)
@@ -498,9 +501,6 @@ def test_gh9551_raise_error_if_disp_true():
 def test_jitted():
     f1j = numba.njit()(f1)
     assert_allclose(zeros.j_newton(f1j, 0), zeros.newton(f1, 0))
-
-
-from scipy.optimize import root
 
 
 def test_ndnewton():

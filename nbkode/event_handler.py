@@ -1,13 +1,13 @@
 """
-    nbkode.events
-    ~~~~~~~~~~~~
+nbkode.events
+~~~~~~~~~~~~
 
-    Methods for dealing with events.
+Methods for dealing with events.
 
-    Adapted from: https://github.com/scipy/scipy/blob/v1.5.4/scipy/integrate/_ivp/ivp.py
+Adapted from: https://github.com/scipy/scipy/blob/v1.5.4/scipy/integrate/_ivp/ivp.py
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from typing import Callable, Iterable

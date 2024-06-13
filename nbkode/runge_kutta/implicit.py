@@ -118,8 +118,6 @@ class AdaptiveRadauIIA(RadauIIA, AdaptiveFIRK):
     pass
 
 
-from ..nbcompat import numba
-
 func = numba.njit(lambda t, y: -y)
 
 s = RadauIIA(func, 0, np.array([1]), h=0.1, root_solver=newton_hd)

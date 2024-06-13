@@ -1,7 +1,7 @@
 matplotlib
 nbsphinx
-numpy
 numba
-scipy
-pytest
+numpy
 pygments>=2.4
+pytest
+scipy

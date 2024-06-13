@@ -124,7 +124,7 @@ the integrator.
 
 .. doctest::
 
-   >>> y0 = 1. 
+   >>> y0 = 1.
    >>> p = -0.1
    >>> t0 = 0
    >>> solver = nbkode.RungeKutta45(rhs, t0, y0, params=p)
@@ -220,4 +220,3 @@ To get a list of the groups:
 
     >>> nbkode.get_groups()
     ('Adams-Bashforth', 'Adams-Moulton', 'BDF', 'Euler', 'Runge-Kutta')
-

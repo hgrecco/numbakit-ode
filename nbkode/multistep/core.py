@@ -92,7 +92,6 @@ class ExplicitMultistep(Multistep, abstract=True):
         A, B = cls.A, cls.B
 
         if A.size < cls.LEN_HISTORY or B.size < cls.LEN_HISTORY:
-
             deltaA = cls.LEN_HISTORY - A.size
             deltaB = cls.LEN_HISTORY - B.size
 
@@ -123,7 +122,6 @@ class ImplicitMultistep(Multistep, abstract=True):
             return y - h_Bn * rhs(t, y) - K
 
         if A.size < cls.LEN_HISTORY or B.size < cls.LEN_HISTORY:
-
             deltaA = cls.LEN_HISTORY - A.size
             deltaB = cls.LEN_HISTORY - B.size
 

@@ -1,11 +1,11 @@
 """
-    nbkode.util
-    ~~~~~~~~~~~
+nbkode.util
+~~~~~~~~~~~
 
-    Useful functions and classes.
+Useful functions and classes.
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import collections

@@ -1,17 +1,17 @@
 """
-    nbkode.nbcompat
-    ~~~~~~~~~~~~~~~
+nbkode.nbcompat
+~~~~~~~~~~~~~~~
 
-    Numba compatible functions. Hopefully, some of these will be unnecessary
-    in the future as Numba continues to grow.
+Numba compatible functions. Hopefully, some of these will be unnecessary
+in the future as Numba continues to grow.
 
-    Current functions and their origin:
-    - newton: scipy.optimize.newton
-    - isclose: numpy.isclose
-    - clip: numpy.clip
+Current functions and their origin:
+- newton: scipy.optimize.newton
+- isclose: numpy.isclose
+- clip: numpy.clip
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from .common import clip, isclose

@@ -77,4 +77,3 @@ Variable step
 |
 
 .. autoclass:: nbkode.RungeKutta45
-

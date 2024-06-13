@@ -1,15 +1,15 @@
 """
-    nbkode.nbcompat.numbasub
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+nbkode.nbcompat.numbasub
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Noop decorators disguised as numba.
+Noop decorators disguised as numba.
 
-    Copied from https://github.com/ptooley/numbasub
+Copied from https://github.com/ptooley/numbasub
 
-    See also: https://stackoverflow.com/questions/3888158
+See also: https://stackoverflow.com/questions/3888158
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import functools

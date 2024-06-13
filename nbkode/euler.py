@@ -1,15 +1,15 @@
 """
-    nbkode.euler
-    ~~~~~~~~~~~~
+nbkode.euler
+~~~~~~~~~~~~
 
-    Methods of the Adams–Moulton family (implicit methods).
-    - ForwardEuler (Euler)
-    - BackwardEuler
+Methods of the Adams–Moulton family (implicit methods).
+- ForwardEuler (Euler)
+- BackwardEuler
 
-    See: https://en.wikipedia.org/wiki/Linear_multistep_method
+See: https://en.wikipedia.org/wiki/Linear_multistep_method
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from .multistep.adams_bashforth import AdamsBashforth1

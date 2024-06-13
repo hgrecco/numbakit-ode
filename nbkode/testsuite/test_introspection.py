@@ -1,12 +1,12 @@
 """
-    nbkode.testsuite.test_introspections
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nbkode.testsuite.test_introspections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Capabilities of the package provide information about
-    the different solvers.
+Capabilities of the package provide information about
+the different solvers.
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import pytest

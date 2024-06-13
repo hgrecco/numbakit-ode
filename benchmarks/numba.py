@@ -1,11 +1,11 @@
 """
-    benchmarks.against_scipy
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+benchmarks.against_scipy
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Comparisons of the different methods with and without numba.
+Comparisons of the different methods with and without numba.
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import os

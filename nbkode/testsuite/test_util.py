@@ -1,12 +1,12 @@
 """
-    nbkode.testsuite.solver_fs
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+nbkode.testsuite.solver_fs
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Test fixed step solvers for:
-    - CaseInsensitiveDict
+Test fixed step solvers for:
+- CaseInsensitiveDict
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import pytest
@@ -15,7 +15,6 @@ from nbkode.util import CaseInsensitiveDict
 
 
 class TestCaseInsensitiveDict:
-
     # Adapted from https://github.com/psf/requests/blob/master/tests/test_structures.py
 
     @pytest.fixture(autouse=True)

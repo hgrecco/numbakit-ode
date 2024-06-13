@@ -1,14 +1,13 @@
 """
-    nbkode.core
-    ~~~~~~~~~~~
+nbkode.core
+~~~~~~~~~~~
 
-    Definition for Solver base class.
+Definition for Solver base class.
 
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
-
 
 from __future__ import annotations
 
@@ -529,7 +528,6 @@ class Solver(ABC, metaclass=MetaSolver):
         y_out = np.empty((n_steps, cache.y.size))
 
         for ndx in range(n_steps):
-
             if not step(t_end, rhs, cache, *args):
                 return t_out[:ndx], y_out[:ndx], True
 

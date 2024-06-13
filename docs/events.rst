@@ -82,7 +82,7 @@ are found.
     >>> print(t_events[0]) # hit ground time  # doctest: +SKIP
     >>> print(t_events[1]) # apex time  # doctest: +SKIP
 
-.. note:: 
+.. note::
     **Important**
 
     Event callables are compiled into the tight loop that runs the simulation

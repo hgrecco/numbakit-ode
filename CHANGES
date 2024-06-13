@@ -22,9 +22,9 @@ numbakit-ode Changelog
 ----------------
 
 - Moved t_bound check to Solver class.
-- Created ALIAS API to allow multiple names for solvers while keeping 
+- Created ALIAS API to allow multiple names for solvers while keeping
   a preferred one.
-- Changed import system in module.. 
+- Changed import system in module..
 - Reorganized solvers into multistep and rungekutta.
 
 

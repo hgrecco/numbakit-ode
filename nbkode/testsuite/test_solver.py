@@ -1,11 +1,11 @@
 """
-    nbkode.testsuite.solver
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+nbkode.testsuite.solver
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Test solvers methods
+Test solvers methods
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import numpy as np
@@ -27,7 +27,6 @@ def f1(t, x, k):
 
 @pytest.mark.parametrize("solver", solvers)
 def test_f1_public_api(solver):
-
     kwargs = dict(h=0.1)
 
     if issubclass(solver, nbkode.multistep.core.Multistep):

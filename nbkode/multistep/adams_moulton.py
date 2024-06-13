@@ -1,20 +1,19 @@
 """
-    nbkode.adams_moulton
-    ~~~~~~~~~~~~~~~~~~~~
+nbkode.adams_moulton
+~~~~~~~~~~~~~~~~~~~~
 
-    Methods of the Adams–Moulton family (implicit methods).
-    - AdamsMoulton1
-    - AdamsMoulton2
-    - AdamsMoulton3
-    - AdamsMoulton4
-    - AdamsMoulton5
+Methods of the Adams–Moulton family (implicit methods).
+- AdamsMoulton1
+- AdamsMoulton2
+- AdamsMoulton3
+- AdamsMoulton4
+- AdamsMoulton5
 
-    See: https://en.wikipedia.org/wiki/Linear_multistep_method
+See: https://en.wikipedia.org/wiki/Linear_multistep_method
 
-    :copyright: 2020 by nbkode Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2020 by nbkode Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
-
 
 import numpy as np
 
