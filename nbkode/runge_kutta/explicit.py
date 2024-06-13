@@ -136,7 +136,6 @@ class RungeKutta23(FSAL):
     assuming accuracy of the second-order method, but steps are taken using the
     third-order accurate formula (local extrapolation is done). A cubic Hermite
     polynomial is used for the dense output.
-    Can be applied in the complex domain.
 
     References
     ----------
@@ -173,7 +172,6 @@ class RungeKutta45(FSAL):
     assuming accuracy of the fourth-order method accuracy, but steps are taken
     using the fifth-order accurate formula (local extrapolation is done).
     A quartic interpolation polynomial is used for the dense output [3]_.
-    Can be applied in the complex domain.
 
     References
     ----------
@@ -287,8 +285,6 @@ class DOP853(FSAL):
     This is a Python implementation of "DOP853" algorithm originally written
     in Fortran [#]_, [#]_. Note that this is not a literate translation, but
     the algorithmic core and coefficients are the same.
-    Can be applied in the complex domain.
-
 
     References
     ----------
@@ -486,7 +482,6 @@ class DOP853Interpolator:
 
 
 if not NO_NUMBA:
-
     from ..buffer import AlignedBuffer
 
     RkInterpolator = numba.jitclass(
